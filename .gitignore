@@ -1,4 +1,11 @@
+*.mov
+*.jpg
+*.DS_Store
+.DS_Store
 .Rproj.user
 clips/.DS_Store
 analysis/.DS_Store
-.DS_Store
+
+clips/*
+frames/*
+
