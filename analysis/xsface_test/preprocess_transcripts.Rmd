@@ -1,0 +1,154 @@
+---
+title: "parse_transcripts"
+author: "Bria Long"
+date: "2023-11-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(readr)
+library(stringr)
+library(here)
+```
+
+Extract utterances from the transcripts.
+
+
+```{r}
+# Define the path 
+file_path <- here::here("data/xs-face/transcripts/plaintext/XS_0801_transcript.txt")
+
+# Helper function to convert time to seconds
+convert_to_seconds <- function(time_string) {
+  parts <- str_split(time_string, ":")[[1]]
+  minutes_to_seconds <- as.numeric(parts[1]) * 60
+  seconds <- as.numeric(parts[2])
+  minutes_to_seconds + seconds
+}
+```
+
+Preprocess the transcript so that we have each utterance and timestamp extracted
+```{r}
+# Read the text file into a tibble
+transcript <- read_lines(file_path) %>%
+  enframe(name = "line_number", value = "text") %>%
+  # Remove leading tab characters
+  mutate(text = str_replace(text, "^\t", ""))
+
+transcript_cleaned <- transcript %>%
+  mutate(timestamp = if_else(str_detect(text, "^\\(\\d+:\\d+\\)"), 
+                             str_extract(text, "\\d+:\\d+"), 
+                             NA_character_)) %>%
+  fill(timestamp, .direction = "down") %>%
+  mutate(start_time = if_else(!is.na(timestamp), 
+                              map_dbl(timestamp, convert_to_seconds), 
+                              NA_real_)) %>%
+  # Remove the rows that are just timestamps without father's speech
+  filter(str_detect(text, "^\\*FAT:")) %>%
+  # Extract the father's speech without the speaker code 
+  mutate(father_speech = str_replace(text, "^\\*FAT:\\s*", "")) %>%
+  select(start_time, father_speech)
+
+# Calculate the end times by taking the start time of the next utterance
+transcript_with_times <- transcript_cleaned %>%
+  mutate(end_time = lead(start_time, default = max(start_time, na.rm = TRUE))) %>%
+  select(start_time, end_time, father_speech)
+
+# View the extracted father's speech with start and end times
+print(transcript_cleaned)
+```
+
+# Add column whether there was a naming event
+```{r}
+
+objs <- c("ball", "brush", "car", "cat",
+          "gimo", "manu", "tima", "zem")
+
+transcript_with_objects <- transcript_with_times %>%
+  rowwise() %>%
+  mutate(objects_detected = paste(na.omit(objs[sapply(objs, function(obj) str_detect(father_speech, obj))]), collapse = ", ")) %>%
+  # Replace empty strings with NA to indicate no objects were detected
+  mutate(objects_detected = ifelse(objects_detected == "", NA, objects_detected)) %>%
+  ungroup()
+
+```
+
+# Get sync timing between third person and first person videos
+```{r}
+get_sub_sync_time <- function(this_sub_id){
+  sync_times_check_file <- read_csv(paste0(here::here(),"/data/xs-face/video_sync_times.csv")) 
+  s <- sync_times_check_file %>%
+    filter(sid == this_sub_id) %>%
+    mutate(sync_time_string =toString(sync_time_stamp)) %>%
+    mutate(frames = str_split_fixed(sync_time_string,":",3)[,3]) %>%
+    mutate(sec = str_split_fixed(sync_time_string,":",3)[,2]) %>%
+    mutate(min = str_split_fixed(sync_time_string,":",3)[,1]) 
+
+  sync_time = as.numeric(s$min) + as.numeric(s$sec)
+  return(sync_time)
+}
+
+
+```
+
+# Get for this subject
+```{r}
+sub_id = 'XS_0801'
+sync_time = get_sub_sync_time(sub_id)
+```
+
+
+# Merge back into transcript
+```{r}
+transcript_cleaned <- transcript_with_objects %>%
+  mutate(start_time_synced = start_time - sync_time) %>%
+  mutate(end_time_synced = end_time - sync_time) %>%
+  filter(start_time_synced>0) %>%
+  select(-start_time, -end_time)
+```
+
+Get naming events 
+```{R}
+  naming_events <- read_csv(here::here("data/xs-face/naming", glue("{naming_file}.csv")),
+                            col_types = "cc")
+
+naming_events <- naming_events |>
+    separate(time,
+             if(str_count(naming_events$time[1], ":") == 2) {
+               c(NA, "min", "s")
+             } else c("min", "s"),
+             sep = ":") |>
+    mutate(time = as.numeric(min) * 60 + as.numeric(s))
+```
+
+```{r}
+naming_events_transcript <- transcript_cleaned %>% 
+  filter(!is.na(objects_detected))
+```
+
+
+# To do -- figure out how to merge naming events and data from transcripts
+Timestamps aren't exact on transcripts (every 10 seconds) and are based on the parent video camera vs. the headcam -- hence the sync times, 
+
+It also seems like there are more naming events in the csv than in the transcript at first blush.
+
+If we're doing coarse time bins it might be more useful to use the naming events transcript and see if the rough timestamps match up
+```{r}
+
+# naming_events_full <- naming_events %>%
+#   left_join(naming_events_transcript, by=c('name' = 'objects_detected'))
+```
+Attempt to merge these together
+```{r}
+
+# merged_data <- fuzzyjoin::fuzzy_left_join(naming_events, naming_events_transcript,
+#                                           by = c("time" = "start_time_synced", "time" = "end_time_synced"),
+#                                           match_fun = list(`>=`, `<=`))
+
+````

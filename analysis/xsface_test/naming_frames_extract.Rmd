@@ -13,9 +13,10 @@ library(glue)
 naming_files <- list.files(here::here("data/xs-face/naming"), pattern = "*.csv") |>
   str_replace(".csv", "")
 
-GET_FRAMES = FALSE
+GET_FRAMES = TRUE
 ```
 
+Only trying this out for the first video -- XS_0801 as a test.
 ```{r}
 for (naming_file in naming_files[1]) {
   if (GET_FRAMES==TRUE){
@@ -26,7 +27,7 @@ for (naming_file in naming_files[1]) {
 
   dir.create(here(folder, naming_file), recursive = TRUE)
 
-  naming_events <- read_csv(here("data/xs-face/naming", glue("{naming_file}.csv")),
+  naming_events <- read_csv(here::here("data/xs-face/naming", glue("{naming_file}.csv")),
                             col_types = "cc")
   naming_events <- naming_events |>
     separate(time,
