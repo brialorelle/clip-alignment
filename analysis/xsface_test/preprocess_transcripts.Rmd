@@ -169,10 +169,13 @@ merged_data <- fuzzyjoin::fuzzy_left_join(naming_events, naming_events_transcrip
 setwd("/Users/brialong/Documents/GitHub/clip-alignment")
 
 naming_events_with_captions <-
-  merged_data %>% filter(!is.na(father_speech))
+  merged_data %>% filter(!is.na(father_speech)) %>%
+  distinct(name, time, father_speech) %>%
+  group_by(time) %>%
+  sample_n(1)
 
 # 'select_text' will contain the final expression after processing.
-select_text = lapply(naming_events_with_captions$time |> unique(), # Start by taking the unique times from naming_events$time
+select_text = lapply(naming_events_with_captions$time,
   \(x) { # For each unique time 'x'
     # times = c(x-2, x-1, x, x+1, x+2) # could flesh this out but then need to figure out a good way to merge with metadata, punting for now....
     times = c(x) # Create a vector 'times' with the time 'x' and two units before and after it
