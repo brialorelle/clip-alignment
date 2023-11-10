@@ -19,9 +19,8 @@ library(here)
 
 Extract utterances from the transcripts.
 
-
 ```{r}
-# Define the path 
+# path to the transcript
 file_path <- here::here("data/xs-face/transcripts/plaintext/XS_0801_transcript.txt")
 
 # Helper function to convert time to seconds
@@ -64,9 +63,8 @@ transcript_with_times <- transcript_cleaned %>%
 print(transcript_cleaned)
 ```
 
-# Add column whether there was a naming event
+# Add column whether there was a naming event or not -- these are the only names in the experiment.
 ```{r}
-
 objs <- c("ball", "brush", "car", "cat",
           "gimo", "manu", "tima", "zem")
 
@@ -106,9 +104,10 @@ sync_time = get_sub_sync_time(sub_id)
 
 # Merge back into transcript
 ```{r}
+sync_time=sync_time-5
 transcript_cleaned <- transcript_with_objects %>%
   mutate(start_time_synced = start_time - sync_time) %>%
-  mutate(end_time_synced = end_time - sync_time) %>%
+  mutate(end_time_synced = start_time_synced + 10) %>%
   filter(start_time_synced>0) %>%
   select(-start_time, -end_time)
 ```
@@ -139,16 +138,62 @@ Timestamps aren't exact on transcripts (every 10 seconds) and are based on the p
 It also seems like there are more naming events in the csv than in the transcript at first blush.
 
 If we're doing coarse time bins it might be more useful to use the naming events transcript and see if the rough timestamps match up
-```{r}
 
-# naming_events_full <- naming_events %>%
-#   left_join(naming_events_transcript, by=c('name' = 'objects_detected'))
+Attempt to merge these together using fuzzyjoin -- joins within 10 second range....
+```{r}
+within_range <- function(x, y) (abs(x-y) < 10)
+
+
+merged_data <- fuzzyjoin::fuzzy_left_join(naming_events, naming_events_transcript,
+                                          by = c("time" = "start_time_synced", "time" = "end_time_synced"),
+                                          match_fun = list(within_range, within_range))
 ```
-Attempt to merge these together
+
 ```{r}
+# tried to flesh this out for all of the possible time widnows in the original scripts but got stuck
 
-# merged_data <- fuzzyjoin::fuzzy_left_join(naming_events, naming_events_transcript,
-#                                           by = c("time" = "start_time_synced", "time" = "end_time_synced"),
-#                                           match_fun = list(`>=`, `<=`))
 
-````
+# naming_events_with_captions <-
+#   merged_data %>% filter(!is.na(father_speech)) %>%
+#   mutate(naming_instance = row_number()) %>%
+#   uncount(5, .id = "id") %>%
+#   group_by(naming_instance) %>%
+#   mutate(time = time + (row_number() - 3)) %>%
+#   select(-id)
+  
+
+```
+
+# Now use ffmpeg to get frames for these naming events for which we have transcript information that roughly matches
+```{r}
+setwd("/Users/brialong/Documents/GitHub/clip-alignment")
+
+naming_events_with_captions <-
+  merged_data %>% filter(!is.na(father_speech))
+
+# 'select_text' will contain the final expression after processing.
+select_text = lapply(naming_events_with_captions$time |> unique(), # Start by taking the unique times from naming_events$time
+  \(x) { # For each unique time 'x'
+    # times = c(x-2, x-1, x, x+1, x+2) # could flesh this out but then need to figure out a good way to merge with metadata, punting for now....
+    times = c(x) # Create a vector 'times' with the time 'x' and two units before and after it
+    lapply(times, # For each time 'y' in the vector 'times'
+      \(y) {
+        glue("lt(prev_pts*TB\\,{y})*gte(pts*TB\\,{y})") # Use the 'glue' function to create an expression string
+        # 'lt' means "less than" and 'gte' means "greater than or equal to"
+        # 'prev_pts*TB' and 'pts*TB' are time variables
+        # where 'pts' stands for "presentation time stamp" and 'TB' is a time base unit (usually seconds).
+        # This creates an expression that checks if the current time 'pts' is within a range around 'y'.
+      }) |> paste(collapse = "+") # Collapse the list of expressions for each 'y' into a single string, separated by '+'
+    }) |> paste(collapse = "+") # Finally, collapse all expressions for each unique time 'x' into one string, again separated by '+'
+
+
+  system(glue("ffmpeg -i videos/{naming_file}_objs.mov -an -vf ",
+                "select='{select_text}' -fps_mode passthrough ",
+                "-frame_pts true data/xs-face/transcript_frames/{naming_file}/frame_%d.jpg"))
+```
+
+
+# Write out this csv as well
+```{r}
+write_csv(naming_events_with_captions, here::here('data/xs-face/naming_with_captions/XS_0801_naming_with_captions.csv'))
+```

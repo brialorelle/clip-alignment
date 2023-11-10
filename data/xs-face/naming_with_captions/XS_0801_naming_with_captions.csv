@@ -1,0 +1,23 @@
+name,min,s,time,father_speech,objects_detected,start_time_synced,end_time_synced
+ball,00,02.0,2,you’re patting that ball.,ball,4,4
+ball,00,02.0,2,you love that ball.,ball,4,4
+gimo,03,30.7,210.7,gimo and cat.,"cat, gimo",214,214
+cat,03,31.1,211.1,gimo and cat.,"cat, gimo",214,214
+gimo,03,33.2,213.2,gimo and cat.,"cat, gimo",214,214
+gimo,03,35.4,215.4,gimo and cat.,"cat, gimo",214,214
+gimo,03,35.4,215.4,that’s the gimo.,gimo,214,224
+cat,03,52.4,232.4,look at the cat.,cat,234,234
+cat,03,54.6,234.6,look at the cat.,cat,234,234
+cat,03,54.6,234.6,let’s play with the kitty cat.,cat,234,244
+brush,05,07.3,307.3,and that’s the brush.,brush,304,314
+brush,05,07.3,307.3,you want to brush your teeth with that?,brush,314,314
+brush,05,28.1,328.1,brush.,brush,324,334
+tima,05,30.0,330,brush.,brush,324,334
+tima,07,35.8,455.8,tima.,tima,454,454
+tima,07,36.9,456.9,tima.,tima,454,454
+cat,10,44.1,644.1,kitty cat.,cat,644,644
+gimo,10,49.4,649.4,kitty cat.,cat,644,644
+cat,11,46.3,706.3,get that kitty cat.,cat,704,714
+cat,12,48.1,768.1,what about the kitty cat?,cat,764,774
+cat,13,05.4,785.4,kitty cat.,cat,784,784
+cat,13,11.0,791,kitty cat.,cat,784,784
