@@ -38,3 +38,6 @@ for i, this_utterance in enumerate(utterances):
 	print(clip_correlation)
 
 
+# desired output - csv with columsn that have subject ID, image name, utterance text, r-value, & any other metadata
+
+
