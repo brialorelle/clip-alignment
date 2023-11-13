@@ -1,0 +1,59 @@
+---
+title: "naming_frames_extract"
+author: "Bria Long"
+date: "2023-11-07"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(glue)
+
+naming_files <- list.files(here::here("data/xs-face/naming"), pattern = "*.csv") |>
+  str_replace(".csv", "")
+
+GET_FRAMES = TRUE
+```
+
+Only trying this out for the first video -- XS_0801 as a test.
+```{r}
+for (naming_file in naming_files[1]) {
+  if (GET_FRAMES==TRUE){
+    folder <- "frames"
+  }  else {folder <- "clips"}
+  
+  if (dir.exists(here(folder, naming_file))) next
+
+  dir.create(here(folder, naming_file), recursive = TRUE)
+
+  naming_events <- read_csv(here::here("data/xs-face/naming", glue("{naming_file}.csv")),
+                            col_types = "cc")
+  naming_events <- naming_events |>
+    separate(time,
+             if(str_count(naming_events$time[1], ":") == 2) {
+               c(NA, "min", "s")
+             } else c("min", "s"),
+             sep = ":") |>
+    mutate(time = as.numeric(min) * 60 + as.numeric(s))
+
+  if (GET_FRAMES) {
+    select_text = lapply(naming_events$time |> unique(), \(x) {
+      times = c(x-2, x-1, x, x+1, x+2)
+      lapply(times, \(y) {
+        glue("lt(prev_pts*TB\\,{y})*gte(pts*TB\\,{y})")
+      }) |> paste(collapse = "+")
+    }) |> paste(collapse = "+")
+
+    system(glue("ffmpeg -i videos/{naming_file}_objs.mov -an -vf ",
+                "select='{select_text}' -fps_mode passthrough ",
+                "-frame_pts true frames/{naming_file}/frame_%d.jpg"))
+  } else {
+    lapply(naming_events$time |> unique(), \(x) {
+      system(glue("ffmpeg -ss {x-2} -i videos/{naming_file}_objs.mov ",
+                  "-fps_mode passthrough -t 4 clips/{naming_file}/clip_{x}.mov"))
+    })
+  }
+
+}
+```

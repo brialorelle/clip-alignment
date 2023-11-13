@@ -1,0 +1,12 @@
+*.mov
+*.jpg
+*.DS_Store
+.DS_Store
+.Rproj.user
+clips/.DS_Store
+analysis/.DS_Store
+
+clips/*
+frames/*
+
+clip_features/get_item_clip_similarities.py
