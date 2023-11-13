@@ -3,9 +3,12 @@ import os
 
 # Function to convert float time to timestamp format - thanks chatgpt 
 def float_to_timestamp(float_time):
-    minutes, seconds = divmod(float_time * 60, 60)
+    seconds, miliseconds = divmod(float_time * 60, 60)
+    minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
-    return "{:02}:{:02}:{:02}".format(int(hours), int(minutes), int(seconds))
+    print(minutes)
+    print(seconds)
+    return "{:02}:{:02}:{:02}.{:02}".format(int(hours), int(minutes), int(seconds), int(miliseconds))
 
 
 def transform(file):
