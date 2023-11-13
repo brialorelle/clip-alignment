@@ -9,3 +9,4 @@ analysis/.DS_Store
 clips/*
 frames/*
 
+clip_features/get_item_clip_similarities.py
