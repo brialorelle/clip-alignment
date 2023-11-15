@@ -1,8 +1,8 @@
 #!/bin/bash
 
-input_video="example_clip.mov"
-json_file="example_clip_mod.json"
-output_directory="output_frames"
+input_video="output.mp4"
+json_file="output_mod.json"
+output_directory="output_frames_decimate"
 
 # Check if jq is installed
 if ! command -v jq &>/dev/null; then

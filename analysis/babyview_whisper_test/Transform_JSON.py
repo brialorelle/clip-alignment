@@ -30,7 +30,7 @@ def transform(file):
 
     print(timestamps)
 
-    with open ('example_clip_mod.json', 'w') as json_file:
+    with open ('output_mod.json', 'w') as json_file:
         json.dump(timestamps, json_file)
 
 
@@ -40,7 +40,10 @@ if __name__ == "__main__":
     home_directory = os.path.expanduser("~")
 
     # Path to the Downloads folder
-    downloads_folder = os.path.join(home_directory, "Downloads")
-    path = os.path.join(downloads_folder, "example_clip.json")
+    current_folder = os.getcwd()
+    script_path = os.path.abspath(__file__)
+    parent_folder = os.path.dirname(script_path)
+    downloads_folder = os.path.join(home_directory, parent_folder)
+    path = os.path.join(downloads_folder, "output.json")
 
     transform(path)
