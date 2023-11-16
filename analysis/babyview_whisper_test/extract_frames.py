@@ -2,6 +2,7 @@ import json
 import subprocess
 from datetime import datetime
 import os
+import csv
 
 def timecode_to_seconds(timecode):
     # Convert timecode in HH:MM:SS format to seconds
@@ -13,6 +14,7 @@ def extract_frames(input_video, output_pattern, json_file):
         with open(json_file) as f:
             data = json.load(f)
             
+        result = [['utterance', 'image_path']]
 
         for key, value in data.items():
             #start_time = timecode_to_seconds(value['start'])
@@ -24,15 +26,19 @@ def extract_frames(input_video, output_pattern, json_file):
             # Use the 'utterance' field as part of the output filename
             output_file = os.path.join(output_folder, f'output_frames_{value["start"]}_%02d.png')
 
+            entry = [value['utterance'], output_file]
+            result.append(entry)
+
             # Run FFmpeg command to extract frames with explicit pixel format
             cmd = [
                 'ffmpeg', 
                 #'-v', "verbose",
                 
                 '-ss', str(start_time),
-                '-t', str(end_time),
+                '-to', str(end_time),
                 '-i', input_video,
                 '-vf', 'fps=1, format=rgb24',
+                '-vsync', 'vfr',
                 output_file
             ]
             
@@ -40,6 +46,16 @@ def extract_frames(input_video, output_pattern, json_file):
             #return
 
             subprocess.run(cmd, check=True)  # Add check=True to raise an error if FFmpeg command fails
+
+        # Specify the file name
+        csv_file_name = 'output.csv'
+
+        # Writing to the CSV file
+        with open(csv_file_name, 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerows(result)
+
+        print(f'CSV file "{csv_file_name}" has been created.')
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
