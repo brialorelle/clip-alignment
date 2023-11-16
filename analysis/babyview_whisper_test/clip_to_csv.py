@@ -1,4 +1,4 @@
- # bll 7.7.22 bria@stanford.edu
+# bll 7.7.22 bria@stanford.edu
 # followed instructions using https://github.com/jina-ai/clip-as-service/tree/main/server
 
 # before starting, run
@@ -31,6 +31,8 @@
 #item_correlations_df_transposed = item_correlations_df.transpose()
 #item_correlations_df_transposed.columns = all_items
 #item_correlations_df_transposed.to_csv('/Users/brialong/Documents/GitHub/online-vocab-assessment/stimuli/selected_stimuli/things_dataset/things_test_all_item_embeddings.csv')
+import sys
+print(sys.executable)
 
 import pandas as pd
 import numpy as np
