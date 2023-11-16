@@ -1,0 +1,95 @@
+Metadata-Version: 2.1
+Name: jina-hubble-sdk
+Version: 0.39.0
+Summary: SDK for Hubble API at Jina AI.
+Home-page: https://github.com/jina-ai/jina-hubble-sdk/
+Download-URL: https://github.com/jina-ai/jina-hubble-sdk/tags
+Author: Jina AI
+Author-email: hello@jina.ai
+License: Apache 2.0
+Project-URL: Source, https://github.com/jina-ai/jina-hubble-sdk/
+Project-URL: Tracker, https://github.com/jina-ai/jina-hubble-sdk/issues
+Keywords: jina neural-search neural-network deep-learning pretraining fine-tuning pretrained-models triplet-loss metric-learning siamese-network few-shot-learning
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Environment :: Console
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.7.0
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests
+Requires-Dist: aiohttp
+Requires-Dist: rich
+Requires-Dist: importlib-metadata
+Requires-Dist: filelock
+Requires-Dist: pathspec
+Requires-Dist: docker
+Requires-Dist: pyyaml
+Requires-Dist: python-jose
+Provides-Extra: full
+Requires-Dist: black (==22.3.0) ; extra == 'full'
+Requires-Dist: flake8 (==4.0.1) ; extra == 'full'
+Requires-Dist: isort (==5.10.1) ; extra == 'full'
+Requires-Dist: pytest (==7.0.0) ; extra == 'full'
+Requires-Dist: pytest-asyncio (==0.19.0) ; extra == 'full'
+Requires-Dist: pytest-cov (==3.0.0) ; extra == 'full'
+Requires-Dist: pytest-mock (==3.7.0) ; extra == 'full'
+Requires-Dist: mock (==4.0.3) ; extra == 'full'
+Requires-Dist: requests ; extra == 'full'
+Requires-Dist: aiohttp ; extra == 'full'
+Requires-Dist: rich ; extra == 'full'
+Requires-Dist: importlib-metadata ; extra == 'full'
+Requires-Dist: filelock ; extra == 'full'
+Requires-Dist: pathspec ; extra == 'full'
+Requires-Dist: docker ; extra == 'full'
+Requires-Dist: pyyaml ; extra == 'full'
+Requires-Dist: python-jose ; extra == 'full'
+
+# jina-hubble-sdk
+
+<img alt="PyPI" src="https://img.shields.io/pypi/v/jina-hubble-sdk">
+<img src="https://codecov.io/gh/jina-ai/jina-hubble-sdk/branch/main/graph/badge.svg?token=Sttz9HTmDq"/>
+
+
+## Install
+
+```shell
+pip install jina-hubble-sdk
+```
+
+```shell
+conda install jina-hubble-sdk -c conda-forge
+```
+
+## Core functionality
+
+* Python API and CLI.
+* Authentication and token management.
+* Artifact management.
+
+## [Documentation](https://docs.jina.ai/jina-ai-cloud/login/)
+
+
+<!-- start support-pitch -->
+## Support
+
+- Join our [Slack community](https://slack.jina.ai) and chat with other Jina community members about ideas.
+- Join our [Engineering All Hands](https://youtube.com/playlist?list=PL3UBBWOUVhFYRUa_gpYYKBqEAkO4sxmne) meet-up to discuss your use case and learn Jina's new features.
+    - **When?** The second Tuesday of every month
+    - **Where?**
+      Zoom ([see our public events calendar](https://calendar.google.com/calendar/embed?src=c_1t5ogfp2d45v8fit981j08mcm4%40group.calendar.google.com&ctz=Europe%2FBerlin)/[.ical](https://calendar.google.com/calendar/ical/c_1t5ogfp2d45v8fit981j08mcm4%40group.calendar.google.com/public/basic.ics))
+      and [live stream on YouTube](https://youtube.com/c/jina-ai)
+- Subscribe to the latest video tutorials on our [YouTube channel](https://youtube.com/c/jina-ai)
+
+## Join Us
+
+Hubble Python SDK is backed by [Jina AI](https://jina.ai) and licensed under [Apache-2.0](./LICENSE). [We are actively hiring](https://jobs.jina.ai) AI engineers, solution engineers to build the next neural search ecosystem in opensource.
+
+<!-- end support-pitch -->

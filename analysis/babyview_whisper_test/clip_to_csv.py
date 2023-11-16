@@ -37,35 +37,45 @@ print(sys.executable)
 import pandas as pd
 import numpy as np
 import os 
-from clip_as_service import Client
 from clip_client import Client
+#from clip_as_service import Client
 
-c = Client('grpc://0.0.0.0:51000')
+def clip_service():
 
-script_directory = os.path.dirname(os.path.abspath(__file__))
-    
-# Get the user's home directory
-home_directory = os.path.expanduser("~")
+    c = Client('grpc://0.0.0.0:51000')
 
-# Path to the Downloads folder
-downloads_folder = os.path.join(home_directory, script_directory)
-csv_path = os.path.join(downloads_folder, 'output.csv')
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+        
+    # Get the user's home directory
+    home_directory = os.path.expanduser("~")
 
-items = pd.read_csv(csv_path)
-utterance = items['utterance']
-im_path = items['image_path']
+    # Path to the Downloads folder
+    downloads_folder = os.path.join(home_directory, script_directory)
+    csv_path = os.path.join(downloads_folder, 'output.csv')
 
-
-item_embeddings = c.encode(utterance)
-embeddings_items = np.size(item_embeddings,0)
-embeddings_vector_length= np.size(item_embeddings,0)
-
-item_embeddings = c.encode(im_path)
-embeddings_items = np.size(item_embeddings,0)
-embeddings_vector_length= np.size(item_embeddings,0)
+    items = pd.read_csv(csv_path)
+    # Use .apply() to modify each element in the 'utterance' column
+    items['utterance'] = items['utterance'].apply(lambda x: f'[{x}]')
+    items['image_path'] = items['image_path'].apply(lambda x: f'[{x}]')
 
 
+    utterance = items['utterance']
+    im_path = items['image_path']
 
-similarity_score = c.score(utterance, im_path)
 
-print(similarity_score)
+    #item_embeddings = c.encode(utterance)
+    #embeddings_items = np.size(item_embeddings,0)
+    #embeddings_vector_length= np.size(item_embeddings,0)
+
+    #item_embeddings = c.encode(im_path)
+    #embeddings_items = np.size(item_embeddings,0)
+    #embeddings_vector_length= np.size(item_embeddings,0)
+
+
+
+    similarity_score = c.score(utterance, im_path)
+
+    print(similarity_score)
+
+if __name__ == "__main__":
+    clip_service()
