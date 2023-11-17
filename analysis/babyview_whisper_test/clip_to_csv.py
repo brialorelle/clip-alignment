@@ -49,7 +49,9 @@ import pandas as pd
 import numpy as np
 import os 
 from clip_client import Client
+from memory_profiler import profile
 
+@profile
 def clip_service():
 
     c = Client('grpc://0.0.0.0:51000')
