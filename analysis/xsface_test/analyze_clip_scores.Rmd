@@ -105,7 +105,55 @@ ggplot(clip_scores_clean, aes(fct_reorder(child_id, -clip_cor, .fun = mean), cli
 ```{R}
 library(lme4)
 library(lmerTest)
-summary(lmer(data=clip_scores_clean, clip_cor ~ age.at.test + object_type + (1|child_id) + (1|name)))
+summary(lmer(data=clip_scores_clean, clip_cor ~ age.at.test*object_type + (1|child_id) + (1|name)))
+```
+
+```{r}
+ggplot(clip_scores_clean, aes(x=age.at.test, y=clip_cor, col=object_type)) +
+  geom_point(alpha=.6) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Age at test (months)') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm')
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+```
+
+```{r}
+by_subject <- clip_scores_clean %>%
+  group_by(object_type, child_id, age.at.test) %>%
+  multi_boot_standard(col = 'clip_cor')
+```
+```{r}
+ggplot(clip_scores_clean, aes(x=age.at.test, y=clip_cor, col=object_type)) +
+  geom_point(alpha=.6) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Age at test (months)') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm')
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+```
+
+```{r}
+ggplot(by_subject, aes(x=age.at.test, y=mean, col=object_type)) +
+  geom_point(alpha=.6) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper)) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Age at test (months)') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm')
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
 ```
 
 # Lets get some example frames
