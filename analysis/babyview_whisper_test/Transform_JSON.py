@@ -40,7 +40,6 @@ if __name__ == "__main__":
     home_directory = os.path.expanduser("~")
 
     # Path to the Downloads folder
-    current_folder = os.getcwd()
     script_path = os.path.abspath(__file__)
     parent_folder = os.path.dirname(script_path)
     downloads_folder = os.path.join(home_directory, parent_folder)

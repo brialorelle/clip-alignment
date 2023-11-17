@@ -9,16 +9,17 @@ def timecode_to_seconds(timecode):
     time_object = datetime.strptime(timecode, '%H:%M:%S')
     return time_object.second + time_object.minute * 60 + time_object.hour * 3600
 
-def extract_frames(input_video, output_pattern, json_file):
+def extract_frames(input_video, output_folder, json_file, script_dir):
     try:
         with open(json_file) as f:
             data = json.load(f)
-            
-        # Specify the CSV file name
-        csv_file_name = 'output.csv'
 
-        # Open the CSV file for writing
-        with open(csv_file_name, 'w', newline='') as csv_file:
+        # Create a new file in the same directory
+        new_file_path = os.path.join(script_dir, 'output.csv')
+        print(f"File created at: {new_file_path}")
+        
+        # Your code to create or manipulate the file can go here
+        with open(new_file_path, 'w', newline='') as csv_file:
             csv_writer = csv.writer(csv_file)
             # Write the header row to the CSV file
             csv_writer.writerow(['utterance', 'image_path'])
@@ -35,7 +36,7 @@ def extract_frames(input_video, output_pattern, json_file):
                 output_file = os.path.join(output_folder, f'output_frames_{value["start"]}_%02d.png')
                 
                 # Write the entry to the CSV file
-                csv_writer.writerow([value['utterance'], output_file])
+                #csv_writer.writerow([value['utterance'], output_file])
 
 
                 # Run FFmpeg command to extract frames with explicit pixel format
@@ -52,14 +53,34 @@ def extract_frames(input_video, output_pattern, json_file):
                 ]
                 print(cmd)
                 subprocess.run(cmd, check=True)  # Add check=True to raise an error if FFmpeg command fails
+                
+                # List all files in the directory
+                files = os.listdir(output_folder)
+
+                #for key, value in data.items():
+                #    matching_files = [file for file in files if value['start'] in file]
+                #    for filename in matching_files:
+                #        csv_writer.writerow([value['utterance'], filename])
+
+                # Print each filename
+                print(f"Filenames in '{output_folder}':")
+                for filename in files:
+                    if filename.endswith(".png") and start_time in filename:
+                        print(filename)
+                        print(value['utterance'])
+                        csv_writer.writerow([value['utterance'], filename])
+                    
+                
+                
 
                 # Write entries to the CSV file for each frame
-                for i in range(1, len(data)+1):
-                    output_file = output_file.format(i)
-                    csv_writer.writerow([value['utterance'], output_file])
+                #for i in range(1, len(data)+1):
+
+                #    output_file = output_file.format(i)
+                #    csv_writer.writerow([value['utterance'], output_file])
 
 
-        print(f'CSV file "{csv_file_name}" has been created.')
+        print(f'CSV file "{new_file_path}" has been created.')
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
@@ -68,6 +89,7 @@ def extract_frames(input_video, output_pattern, json_file):
 
 
 if __name__ == "__main__":
+    # Get the absolute path to the directory of the current script
     script_directory = os.path.dirname(os.path.abspath(__file__))
     
     # Get the user's home directory
@@ -90,7 +112,7 @@ if __name__ == "__main__":
     os.makedirs(output_folder, exist_ok=True)
 
     try:
-        extract_frames(input_video, output_folder, json_file)
+        extract_frames(input_video, output_folder, json_file, script_directory)
     except Exception as e:
         print(f"Failed to extract frames: {str(e)}")
         # You can choose to log the error or perform any other necessary cleanup/termination here
