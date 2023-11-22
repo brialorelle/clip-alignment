@@ -1,17 +1,17 @@
-utterance,image_path
-" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_03.png
-" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_02.png
-" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_01.png
-" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_05.png
-" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_04.png
-" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_06.png
- Are you going to read about the big hungry bear?,output_frames_00:00:06.00_04.png
- Are you going to read about the big hungry bear?,output_frames_00:00:06.00_05.png
- Are you going to read about the big hungry bear?,output_frames_00:00:06.00_02.png
- Are you going to read about the big hungry bear?,output_frames_00:00:06.00_03.png
- Are you going to read about the big hungry bear?,output_frames_00:00:06.00_01.png
- Yeah.,output_frames_00:00:11.00_01.png
- And the fresh strawberry?,output_frames_00:00:12.00_01.png
-" Okay, maybe Emil can see the bear's birthday book now.",output_frames_00:00:13.00_02.png
-" Okay, maybe Emil can see the bear's birthday book now.",output_frames_00:00:13.00_03.png
-" Okay, maybe Emil can see the bear's birthday book now.",output_frames_00:00:13.00_01.png
+utterance,image_path,video_name,utterance_num,timestamp,r_value
+" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_03.png,output,03,00:00:00.00,0.24886394818469282
+" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_02.png,output,02,00:00:00.00,0.2565461422151692
+" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_01.png,output,01,00:00:00.00,0.2656619277901078
+" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_05.png,output,05,00:00:00.00,0.2638124028554384
+" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_04.png,output,04,00:00:00.00,0.2658742729312125
+" Oh, maybe you want to see the bear's birthday book.",output_frames_00:00:00.00_06.png,output,06,00:00:00.00,0.22739210157769557
+ Are you going to read about the big hungry bear?,output_frames_00:00:06.00_04.png,output,04,00:00:06.00,0.20673258550812595
+ Are you going to read about the big hungry bear?,output_frames_00:00:06.00_05.png,output,05,00:00:06.00,0.25597298226725124
+ Are you going to read about the big hungry bear?,output_frames_00:00:06.00_02.png,output,02,00:00:06.00,0.2240835632311142
+ Are you going to read about the big hungry bear?,output_frames_00:00:06.00_03.png,output,03,00:00:06.00,0.2170695773652246
+ Are you going to read about the big hungry bear?,output_frames_00:00:06.00_01.png,output,01,00:00:06.00,0.23576228688572817
+ Yeah.,output_frames_00:00:11.00_01.png,output,01,00:00:11.00,0.20322383409972214
+ And the fresh strawberry?,output_frames_00:00:12.00_01.png,output,01,00:00:12.00,0.22656575426908654
+" Okay, maybe Emil can see the bear's birthday book now.",output_frames_00:00:13.00_02.png,output,02,00:00:13.00,0.25163851913834406
+" Okay, maybe Emil can see the bear's birthday book now.",output_frames_00:00:13.00_03.png,output,03,00:00:13.00,0.24459226100508658
+" Okay, maybe Emil can see the bear's birthday book now.",output_frames_00:00:13.00_01.png,output,01,00:00:13.00,0.2449024171498116

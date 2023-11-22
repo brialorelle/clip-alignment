@@ -49,9 +49,8 @@ import pandas as pd
 import numpy as np
 import os 
 from clip_client import Client
-from memory_profiler import profile
 
-@profile
+
 def clip_service():
 
     c = Client('grpc://0.0.0.0:51000')
@@ -63,23 +62,40 @@ def clip_service():
     items = pd.read_csv(csv_path)
 
     utterance = items['utterance']
-    im_path = items['image_path']
+    image_path = items['image_path']
+
+    video_name = []
+    timestamp = []
+    utterance_num = []
+    r_value = []
+
+
+    # video_name, utterance_num, timestamp, image_name (utterance_number_timestamp.jpg), utterance_text, r_value
 
     for i, this_utterance in enumerate(utterance):
         print (i)
-        image_instance = im_path[i]
+        image_instance = image_path[i]
+
+        # Split the string by underscores
+        parts = image_instance.split('_')
+        video_name.append(parts[0])
+        utterance_num.append(parts[-1].split('.')[0])
+        timestamp.append(parts[-2])
+
         this_image = os.path.join(image_dir, image_instance)
-        print(this_image)
         utterance_embeddings = c.encode([this_utterance])
-        print(utterance_embeddings)
         im_embeddings = c.encode([this_image])
-        print(im_embeddings)
-        clip_correlation = np.corrcoef(utterance_embeddings, im_embeddings)[0,1]
-        print(clip_correlation)
+        r_value.append(np.corrcoef(utterance_embeddings, im_embeddings)[0,1])
+        print(r_value)
 
-    #similarity_score = c.score(utterance, im_path)
 
-    #print(similarity_score)
+    items['video_name'] = video_name
+    items['utterance_num'] = utterance_num
+    items['timestamp'] = timestamp
+    items['r_value'] = r_value
+
+    items.to_csv(csv_path, index=False)
+
 
 if __name__ == "__main__":
     clip_service()
