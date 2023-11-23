@@ -9,35 +9,28 @@ def timecode_to_seconds(timecode):
     time_object = datetime.strptime(timecode, '%H:%M:%S')
     return time_object.second + time_object.minute * 60 + time_object.hour * 3600
 
-def extract_frames(input_video, output_folder, json_file, script_dir):
+def extract_frames(input_video, output_folder, json_file, output_csv):
     try:
         with open(json_file) as f:
             data = json.load(f)
-
-        # Create a new file in the same directory
-        new_file_path = os.path.join(script_dir, 'output.csv')
-        print(f"File created at: {new_file_path}")
-        
+        print("Now extracting frames with ffmpeg")
         # Your code to create or manipulate the file can go here
-        with open(new_file_path, 'w', newline='') as csv_file:
+        with open(output_csv, 'a', newline='') as csv_file:
             csv_writer = csv.writer(csv_file)
-            # Write the header row to the CSV file
-            csv_writer.writerow(['utterance', 'image_path'])
-
-
+            # If the file is empty, write the header row
+            if csv_file.tell() == 0:
+                csv_writer.writerow(['utterance', 'image_path'])
+                
             for key, value in data.items():
-                #start_time = timecode_to_seconds(value['start'])
-                #end_time = timecode_to_seconds(value['end'])
 
                 start_time = value['start']
                 end_time = value['end']
-
-                # Use the 'utterance' field as part of the output filename
-                output_file = os.path.join(output_folder, f'output_frames_{value["start"]}_%02d.png')
                 
-                # Write the entry to the CSV file
-                #csv_writer.writerow([value['utterance'], output_file])
-
+                # set up where the frames will be put
+                parts = input_video.split('/')
+                filename = parts[-1].split('.')[0]
+                name = filename + '_' + value["start"] + '_%02d.png'
+                output_file = os.path.join(output_folder, name)
 
                 # Run FFmpeg command to extract frames with explicit pixel format
                 cmd = [
@@ -51,16 +44,11 @@ def extract_frames(input_video, output_folder, json_file, script_dir):
                     '-vsync', 'vfr',
                     output_file
                 ]
-                print(cmd)
+                print("Ffmpeg command: ", cmd)
                 subprocess.run(cmd, check=True)  # Add check=True to raise an error if FFmpeg command fails
                 
                 # List all files in the directory
                 files = os.listdir(output_folder)
-
-                #for key, value in data.items():
-                #    matching_files = [file for file in files if value['start'] in file]
-                #    for filename in matching_files:
-                #        csv_writer.writerow([value['utterance'], filename])
 
                 # Print each filename
                 print(f"Filenames in '{output_folder}':")
@@ -69,18 +57,8 @@ def extract_frames(input_video, output_folder, json_file, script_dir):
                         print(filename)
                         print(value['utterance'])
                         csv_writer.writerow([value['utterance'], filename])
-                    
-                
-                
 
-                # Write entries to the CSV file for each frame
-                #for i in range(1, len(data)+1):
-
-                #    output_file = output_file.format(i)
-                #    csv_writer.writerow([value['utterance'], output_file])
-
-
-        print(f'CSV file "{new_file_path}" has been created.')
+        print(f'CSV file "{output_csv}" has been edited.')
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")

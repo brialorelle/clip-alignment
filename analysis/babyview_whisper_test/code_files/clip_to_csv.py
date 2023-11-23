@@ -51,16 +51,11 @@ import os
 from clip_client import Client
 
 
-def clip_service():
+def clip_service(csv_path, image_dir):
 
     c = Client('grpc://0.0.0.0:51000')
-
-    script_directory = os.path.dirname(os.path.abspath(__file__))
-    image_dir = os.path.join(script_directory, 'output_frames_decimate')
-
-    csv_path = os.path.join(script_directory, 'output.csv')
     items = pd.read_csv(csv_path)
-
+    print("Now applying clip")
     utterance = items['utterance']
     image_path = items['image_path']
 
@@ -73,12 +68,13 @@ def clip_service():
     # video_name, utterance_num, timestamp, image_name (utterance_number_timestamp.jpg), utterance_text, r_value
 
     for i, this_utterance in enumerate(utterance):
-        print (i)
+        print ("Utterance processed by clip: ", i)
         image_instance = image_path[i]
 
         # Split the string by underscores
         parts = image_instance.split('_')
-        video_name.append(parts[0])
+        vid_name = '_'.join(parts[0:-2])
+        video_name.append(vid_name)
         utterance_num.append(parts[-1].split('.')[0])
         timestamp.append(parts[-2])
 
@@ -86,7 +82,7 @@ def clip_service():
         utterance_embeddings = c.encode([this_utterance])
         im_embeddings = c.encode([this_image])
         r_value.append(np.corrcoef(utterance_embeddings, im_embeddings)[0,1])
-        print(r_value)
+        print("r val: ", r_value)
 
 
     items['video_name'] = video_name
@@ -95,6 +91,8 @@ def clip_service():
     items['r_value'] = r_value
 
     items.to_csv(csv_path, index=False)
+
+    print("CSV is updated")
 
 
 if __name__ == "__main__":

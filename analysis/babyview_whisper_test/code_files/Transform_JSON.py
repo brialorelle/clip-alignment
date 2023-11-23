@@ -11,10 +11,15 @@ def float_to_timestamp(float_time):
     return "{:02}:{:02}:{:02}.{:02}".format(int(hours), int(minutes), int(seconds), int(miliseconds))
 
 
-def transform(file):
+def transform(file, mod_dir):
+    parts = file.split('/')
+    filename = parts[-1].split('.')[0]
+    filename2 = filename + "_mod.json"
+    name = os.path.join(mod_dir, filename2)
+
     with open(file, 'r') as file:
         data = json.load(file)
-
+    print("Now transforming json")
     parsed = data["segments"]
     timestamps = {}
     key = 0
@@ -28,21 +33,23 @@ def transform(file):
         
         timestamps[key] = {"start": start, "end": stop, "utterance": utterance}
 
-    print(timestamps)
+    print("Json timestamps extracted: ", timestamps)
 
-    with open ('output_mod.json', 'w') as json_file:
+    with open(name, 'w') as json_file:
         json.dump(timestamps, json_file)
+    print("Timestamps put into modified json")
+    return name
 
 
 
 if __name__ == "__main__":
     # Get the user's home directory
-    home_directory = os.path.expanduser("~")
+    #home_directory = os.path.expanduser("~")
 
     # Path to the Downloads folder
-    script_path = os.path.abspath(__file__)
-    parent_folder = os.path.dirname(script_path)
-    downloads_folder = os.path.join(home_directory, parent_folder)
-    path = os.path.join(downloads_folder, "output.json")
+    #script_path = os.path.abspath(__file__)
+    #parent_folder = os.path.dirname(script_path)
+    #downloads_folder = os.path.join(home_directory, parent_folder)
+    #path = os.path.join(downloads_folder, "output.json")
 
-    transform(path)
+    transform(file, mod_dir)
