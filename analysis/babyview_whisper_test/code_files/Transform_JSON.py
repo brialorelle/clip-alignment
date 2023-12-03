@@ -1,7 +1,7 @@
 import json
 import os
 
-# Function to convert float time to timestamp format - thanks chatgpt 
+# Function to convert float time to timestamp format
 def float_to_timestamp(float_time):
     seconds, miliseconds = divmod(float_time * 60, 60)
     minutes, seconds = divmod(seconds, 60)

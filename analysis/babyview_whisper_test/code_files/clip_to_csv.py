@@ -26,6 +26,11 @@ def clip_service(csv_path, image_dir):
         print ("Utterance processed by clip: ", i)
         image_instance = image_path[i]
 
+        # skip if we have already run this before and there is no new information to add
+        if 'r_value' in items.columns:
+            if items.notnull().all().all():
+                break
+
         # Get the name of the video, utterance, and timestamp from the frame and prep to put in csv
         parts = image_instance.split('_')
         vid_name = '_'.join(parts[0:-2])
@@ -41,21 +46,15 @@ def clip_service(csv_path, image_dir):
         print("r val: ", r_value)
 
     # put all relevant info in the csv
-    #items['video_name'] = video_name
-    #items['utterance_num'] = utterance_num
-    #items['timestamp'] = timestamp
-    #items['r_value'] = r_value
+    if video_name:
+        items['video_name'] = video_name
+    if utterance_num:
+        items['utterance_num'] = utterance_num
+    if timestamp:
+        items['timestamp'] = timestamp
+    if r_value:
+        items['r_value'] = r_value
 
-    # Check if the data is already present in the CSV and add only unique entries
-    unique_entries = set()
-    new_data = []
-
-    for vid, utt, ts, rval in zip(video_name, utterance_num, timestamp, r_value):
-        if (vid, utt, ts) not in unique_entries:
-            unique_entries.add((vid, utt, ts))
-            new_data.append({'video_name': vid, 'utterance_num': utt, 'timestamp': ts, 'r_value': rval})
-
-    items = pd.concat([items, pd.DataFrame(new_data)], ignore_index=True)
     items.to_csv(csv_path, index=False)
 
     print("CSV is updated")

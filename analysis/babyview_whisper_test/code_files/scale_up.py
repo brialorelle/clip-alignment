@@ -38,7 +38,7 @@ def process_video(video_path, frames_dir, csv_dir, mod_dir, whisper_dir):
     init_json = apply_whisper(video_path, video_name, whisper_dir)
     print("apply whisper output: ", init_json)
     
-    # extract just utterances and timestamps from output json
+    # extract just utterances and timestamps from output jsons
     json_name = transform(init_json, mod_dir)
     print("name of transformed json file: ", json_name)
      
