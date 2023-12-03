@@ -10,19 +10,22 @@ def float_to_timestamp(float_time):
     print(seconds)
     return "{:02}:{:02}:{:02}.{:02}".format(int(hours), int(minutes), int(seconds), int(miliseconds))
 
-
+# Takes in a json file outputted by whisper and the output directory and extracts just timestamps and utterances
 def transform(file, mod_dir):
+    # get name of file
     parts = file.split('/')
     filename = parts[-1].split('.')[0]
     filename2 = filename + "_mod.json"
     name = os.path.join(mod_dir, filename2)
 
+    # start on json data
     with open(file, 'r') as file:
         data = json.load(file)
     print("Now transforming json")
     parsed = data["segments"]
     timestamps = {}
     key = 0
+    # extract desired info for each entry in the json file
     for entry in parsed:
         key += 1
         start = entry["start"]
@@ -34,7 +37,7 @@ def transform(file, mod_dir):
         timestamps[key] = {"start": start, "end": stop, "utterance": utterance}
 
     print("Json timestamps extracted: ", timestamps)
-
+    # put narrowed info file into new json file
     with open(name, 'w') as json_file:
         json.dump(timestamps, json_file)
     print("Timestamps put into modified json")
@@ -43,13 +46,4 @@ def transform(file, mod_dir):
 
 
 if __name__ == "__main__":
-    # Get the user's home directory
-    #home_directory = os.path.expanduser("~")
-
-    # Path to the Downloads folder
-    #script_path = os.path.abspath(__file__)
-    #parent_folder = os.path.dirname(script_path)
-    #downloads_folder = os.path.join(home_directory, parent_folder)
-    #path = os.path.join(downloads_folder, "output.json")
-
-    transform(file, mod_dir)
+    transform(file, modified_dir)

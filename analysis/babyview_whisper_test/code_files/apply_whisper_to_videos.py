@@ -1,22 +1,16 @@
 import os
 import subprocess
 
-def apply_whisper(file):
-    parts = file.split('/')
-    filename = parts[-1].split('.')[0]
-    babyview_whisper_test_list = parts[:-2]
-    # Join the modified parts back into a string
-    babyview_whisper_test = "/".join(babyview_whisper_test_list)
-    whisper_output = os.path.join(babyview_whisper_test, "whisper_output")
-    print("folder for whisper output: ", whisper_output)
-
-    command = f"whisper {file} --model medium --language English --output_dir {whisper_output}"
-
+# apply whisper to video
+def apply_whisper(file, video_name, whisper_dir):
+    # run whisper in terminal
+    command = f"whisper {file} --model medium --language English --output_dir {whisper_dir}"
     print("command: ", command)
     # Use subprocess to execute the command
     subprocess.run(command, shell=True)
 
-    file_path = os.path.join(whisper_output, filename)
+    # get name of output file so the rest of the pipeline knows what to work with
+    file_path = os.path.join(whisper_dir, video_name)
     file_path_2 = file_path + ".json"
     return file_path_2
 

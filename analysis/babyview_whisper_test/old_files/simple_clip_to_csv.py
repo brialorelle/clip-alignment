@@ -6,6 +6,9 @@
 # python3 -m clip_server
 # python3
 
+
+# mostly repeat of clip_to_csv.py, WE ARE NOT USING
+
 import pandas as pd
 import numpy as np
 import os 

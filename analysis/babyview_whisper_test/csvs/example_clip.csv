@@ -1,0 +1,33 @@
+utterance,image_path,video_name,utterance_num,timestamp,r_value
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_09.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_08.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_05.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_10.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_04.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_06.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_07.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_03.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_02.png,,,,
+ oh maybe you want to see the bear's birthday book are you gonna read about the big hungry,example_clip_00:00:00.00_01.png,,,,
+ bear?,example_clip_00:00:10.15_01.png,,,,
+ yeah.,example_clip_00:00:11.15_01.png,,,,
+ and the fresh strawberry?,example_clip_00:00:12.15_01.png,,,,
+ okay maybe emila can see the bear's birthday book now,example_clip_00:00:13.15_02.png,,,,
+ okay maybe emila can see the bear's birthday book now,example_clip_00:00:13.15_03.png,,,,
+ okay maybe emila can see the bear's birthday book now,example_clip_00:00:13.15_01.png,,,,
+,,example_clip,09,00:00:00.00,0.24352210380732184
+,,example_clip,08,00:00:00.00,0.25336260031429053
+,,example_clip,05,00:00:00.00,0.25251688681275686
+,,example_clip,10,00:00:00.00,0.23244394383353387
+,,example_clip,04,00:00:00.00,0.2676051994963937
+,,example_clip,06,00:00:00.00,0.2308152493456871
+,,example_clip,07,00:00:00.00,0.23596170974555203
+,,example_clip,03,00:00:00.00,0.25185435330096545
+,,example_clip,02,00:00:00.00,0.2568291263812848
+,,example_clip,01,00:00:00.00,0.2501455163821728
+,,example_clip,01,00:00:10.15,0.23007600081725527
+,,example_clip,01,00:00:11.15,0.19502231710466786
+,,example_clip,01,00:00:12.15,0.20282214379907362
+,,example_clip,02,00:00:13.15,0.2071995973816365
+,,example_clip,03,00:00:13.15,0.2146050303668846
+,,example_clip,01,00:00:13.15,0.2708259493640169

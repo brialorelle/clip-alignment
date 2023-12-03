@@ -1,0 +1,37 @@
+utterance,image_path,video_name,utterance_num,timestamp,r_value
+ or the Pock-a-Lot Peas?,dinsosaur_puzzle_00:00:00.00_01.png,,,,
+ or the Pock-a-Lot Peas?,dinsosaur_puzzle_00:00:00.00_02.png,,,,
+" No, this one is called the Lion Peas.",dinsosaur_puzzle_00:00:02.00_01.png,,,,
+" No, this one is called the Lion Peas.",dinsosaur_puzzle_00:00:02.00_03.png,,,,
+" No, this one is called the Lion Peas.",dinsosaur_puzzle_00:00:02.00_02.png,,,,
+ That was a dinosaur.,dinsosaur_puzzle_00:00:05.00_01.png,,,,
+ That was a dinosaur.,dinsosaur_puzzle_00:00:05.00_02.png,,,,
+" Oh, it's a dinosaur?",dinsosaur_puzzle_00:00:07.00_01.png,,,,
+" Oh, it's a dinosaur?",dinsosaur_puzzle_00:00:07.00_02.png,,,,
+ Look! It's the same as this!,dinsosaur_puzzle_00:00:13.00_01.png,,,,
+ Look! It's the same as this!,dinsosaur_puzzle_00:00:13.00_03.png,,,,
+ Look! It's the same as this!,dinsosaur_puzzle_00:00:13.00_02.png,,,,
+ Look! It's the same as this!,dinsosaur_puzzle_00:00:13.00_05.png,,,,
+ Look! It's the same as this!,dinsosaur_puzzle_00:00:13.00_04.png,,,,
+ Yeah!,dinsosaur_puzzle_00:00:18.00_02.png,,,,
+ Yeah!,dinsosaur_puzzle_00:00:18.00_01.png,,,,
+ Pock-a-Lot Peas!,dinsosaur_puzzle_00:00:20.00_01.png,,,,
+ Pock-a-Lot Peas!,dinsosaur_puzzle_00:00:20.00_02.png,,,,
+,,dinsosaur_puzzle,01,00:00:00.00,0.23682680310156637
+,,dinsosaur_puzzle,02,00:00:00.00,0.2442642998603697
+,,dinsosaur_puzzle,01,00:00:02.00,0.2208392785559159
+,,dinsosaur_puzzle,03,00:00:02.00,0.23808538651064148
+,,dinsosaur_puzzle,02,00:00:02.00,0.22775721365509896
+,,dinsosaur_puzzle,01,00:00:05.00,0.2626978991806601
+,,dinsosaur_puzzle,02,00:00:05.00,0.2462762900638351
+,,dinsosaur_puzzle,01,00:00:07.00,0.23801362977359605
+,,dinsosaur_puzzle,02,00:00:07.00,0.2452177298849941
+,,dinsosaur_puzzle,01,00:00:13.00,0.2162150509963729
+,,dinsosaur_puzzle,03,00:00:13.00,0.22342368498526086
+,,dinsosaur_puzzle,02,00:00:13.00,0.2201434560458923
+,,dinsosaur_puzzle,05,00:00:13.00,0.2130542868939884
+,,dinsosaur_puzzle,04,00:00:13.00,0.2095486215601301
+,,dinsosaur_puzzle,02,00:00:18.00,0.2035557756499893
+,,dinsosaur_puzzle,01,00:00:18.00,0.20555526838523908
+,,dinsosaur_puzzle,01,00:00:20.00,0.20163084869468312
+,,dinsosaur_puzzle,02,00:00:20.00,0.1963928978461663

@@ -1,8 +1,13 @@
 #!/bin/bash
 
-input_video="output.mp4"
-json_file="output_mod.json"
-output_directory="output_frames_decimate"
+# NOT USING  - repeat with extract_frames.py I think
+
+# eg. output.mp4
+input_video="$1"
+# eg. output_mod.json
+json_file="$2"
+# eg. output_frames_decimate
+output_directory="$3"
 
 # Check if jq is installed
 if ! command -v jq &>/dev/null; then
@@ -27,6 +32,6 @@ jq -c '.[]' "$json_file" | while read -r segment; do
     echo "Start Timestamp: $start_timestamp"
     echo "Stop Timestamp: $stop_timestamp"
     
-    ffmpeg -i "$input_video" -ss "$start_timestamp" -to "$stop_timestamp" -r 30 -f image2 "$output_directory/frame_%04d-new.jpg"
+    ffmpeg -i "$input_video" -ss "$start_timestamp" -to "$stop_timestamp" -r 30 -f image2 "$output_directory/$input_video/frame_%04d-new.jpg"
 done
 
