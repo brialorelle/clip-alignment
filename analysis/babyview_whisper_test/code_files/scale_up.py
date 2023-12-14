@@ -26,7 +26,8 @@ def cleaning_dirs(directory_path):
 def process_video(video_path, frames_dir, csv_dir, mod_dir, whisper_dir):
     # extract video name with which to name our output data
     parts = video_path.split('/')
-    video_name = parts[-1].split('.')[0]
+    video_name, extension = os.path.splitext(parts[-1])
+    # video_name = parts[-1].split('.')[0]
 
     # Create a new file in the same directory
     file_path = os.path.join(csv_dir, video_name)
