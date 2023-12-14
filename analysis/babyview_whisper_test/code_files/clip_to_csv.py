@@ -31,6 +31,7 @@ def clip_service(csv_path, image_dir):
             if items.notnull().all().all():
                 break
 
+        # REQUIRES image to be named videoname_timestamp_imagenumofutterance.(whatever extension) 
         # Get the name of the video, utterance, and timestamp from the frame and prep to put in csv
         filename, extension = os.path.splitext(image_instance)
         # Find the last underscore and last period
