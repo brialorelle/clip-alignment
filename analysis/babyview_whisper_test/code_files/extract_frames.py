@@ -54,7 +54,6 @@ def extract_frames(input_video, output_folder, json_file, output_csv):
             # set up where the frames will be put
             parts = input_video.split('/')
             filename, extension = os.path.splitext(parts[-1])
-            # filename = parts[-1].split('.')[0]
             name_wo_numbering = filename + '_' + value["start"]
             name = name_wo_numbering + '_%02d.png'
             output_file = os.path.join(output_folder, name)

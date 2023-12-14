@@ -15,7 +15,6 @@ def transform(file, mod_dir):
     # get name of file
     parts = file.split('/')
     filename, extension = os.path.splitext(parts[-1])
-    # video_name, extension = os.path.splitext(parts)
     filename2 = filename + "_mod.json"
     name = os.path.join(mod_dir, filename2)
 

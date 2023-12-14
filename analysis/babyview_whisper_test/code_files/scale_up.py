@@ -23,20 +23,25 @@ def cleaning_dirs(directory_path):
 
 
 # Put each video through the pipeline
-def process_video(video_path, frames_dir, csv_dir, mod_dir, whisper_dir):
+def process_video(video_path, frames_dir, csv_dir, mod_dir, whisper_dir, whisper=True):
     # extract video name with which to name our output data
     parts = video_path.split('/')
     video_name, extension = os.path.splitext(parts[-1])
-    # video_name = parts[-1].split('.')[0]
 
     # Create a new file in the same directory
     file_path = os.path.join(csv_dir, video_name)
     output_csv = file_path + ".csv"
     print(f"File created at: {output_csv}")
     print(f"Processing video: {video_path}")
+    
+    if whisper:
+        # obtain whisper timestamps and utterances
+        apply_whisper(video_path, video_name, whisper_dir)
+        print("applied whisper")
 
-    # obtain whisper timestamps and utterances
-    init_json = apply_whisper(video_path, video_name, whisper_dir)
+    # get name of output file so the rest of the pipeline knows what to work with
+    file_path = os.path.join(whisper_dir, video_name)
+    init_json = file_path + ".json"
     print("apply whisper output: ", init_json)
     
     # extract just utterances and timestamps from output jsons
@@ -53,9 +58,9 @@ def process_video(video_path, frames_dir, csv_dir, mod_dir, whisper_dir):
 
     cleaning_dirs(frames_dir)
     cleaning_dirs(mod_dir)
-    cleaning_dirs(whisper_dir)
+    # cleaning_dirs(whisper_dir)
 
-def scaling():
+def scaling(whisper=True):
     # get the name of the directory we're working in
     script_directory = os.path.dirname(os.path.abspath(__file__))
     # Find the last index of '/'
@@ -79,9 +84,24 @@ def scaling():
         video_files = glob.glob(pattern)
         
         for video_file in video_files:
-            process_video(video_file, frames_dir, csv_dir, mod_dir, whisper_dir)
+            process_video(video_file, frames_dir, csv_dir, mod_dir, whisper_dir, whisper)
 
 
 
 if __name__ == "__main__":
-    scaling()
+    # Functionality to turn off whisper. Pass in false or call the code in terminal "python scale_up.py false" and it won't run whisper
+    # Otherwise the default is true do run whisper
+    # You MUST already have a whisper output json file in code_files>whisper_output to run without whisper
+    # Otherwise it will crash
+    
+    # Check if there is a command line argument
+    if len(sys.argv) > 1:
+        # Check if the argument is "False"
+        if sys.argv[1].lower() == "false":
+            whisper = False
+        else:
+            whisper = True
+    else:
+        whisper = True
+
+    scaling(whisper)

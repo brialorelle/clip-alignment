@@ -47,12 +47,6 @@ def clip_service(csv_path, image_dir):
         vid_name = filename[: second_last_underscore_index]
         video_name.append(vid_name)
 
-        #parts = image_instance.split('_')
-        #vid_name = '_'.join(parts[0:-2])
-        #video_name.append(vid_name)
-        #utterance_num.append(parts[-1].split('.')[0])
-        #timestamp.append(parts[-2])
-
         # encode the image and utterance to get the embeddings from which to get the r-values
         this_image = os.path.join(image_dir, image_instance)
         utterance_embeddings = c.encode([this_utterance])
