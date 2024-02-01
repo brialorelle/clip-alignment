@@ -74,8 +74,8 @@ def scaling(whisper=True):
     frames_dir = os.path.join(dir, 'output_frames')
     csv_dir = os.path.join(dir, 'csvs')
     mod_dir = os.path.join(dir, 'modified_jsons')
-    # whisper_dir = os.path.join(dir, 'whisper_output')
-    whisper_dir =  os.path.join("/data/babyview/transcripts/Babyview_Main/00230001")
+    whisper_dir = os.path.join(dir, 'whisper_output')
+    # whisper_dir =  os.path.join("/data/babyview/transcripts/Babyview_Main/00230001")
     
     # identify the videos we're working with
     video_dir =  os.path.join("/data/babyview/Babyview_Main/00230001")
