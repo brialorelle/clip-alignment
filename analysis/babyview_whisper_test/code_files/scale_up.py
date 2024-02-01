@@ -77,8 +77,8 @@ def scaling(whisper=True):
     whisper_dir = os.path.join(dir, 'whisper_output')
 
     # identify the videos we're working with
-    video_dir = os.path.join(dir, 'videos/')
-    video_extensions = ['mp4', 'avi', 'mov']  # Add more extensions if needed
+    video_dir =  os.path.join("/data/babyview/Babyview_Demo")
+    video_extensions = ['MP4']  # Add more extensions if needed
     # apply the pipeline to each video in the videos directory
     for ext in video_extensions:
         pattern = os.path.join(video_dir, f'*.{ext}')
@@ -86,8 +86,6 @@ def scaling(whisper=True):
         
         for video_file in video_files:
             process_video(video_file, frames_dir, csv_dir, mod_dir, whisper_dir, whisper)
-
-
 
 if __name__ == "__main__":
     # Functionality to turn off whisper. Pass in false or call the code in terminal "python scale_up.py false" and it won't run whisper
