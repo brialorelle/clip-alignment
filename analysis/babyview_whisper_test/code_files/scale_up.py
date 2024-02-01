@@ -1,5 +1,6 @@
 import sys
-sys.path.append("/Users/marielleib/Documents/GitHub/clip-alignment/analysis/babyview_whisper_test")
+# sys.path.append("/Users/marielleib/Documents/GitHub/clip-alignment/analysis/babyview_whisper_test")
+sys.path.append("/home/bria/clip-alignment/analysis/babyview_whisper_test")
 import os
 import glob
 from code_files.Transform_JSON import transform
