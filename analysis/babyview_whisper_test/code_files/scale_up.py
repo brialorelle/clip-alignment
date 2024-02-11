@@ -14,6 +14,8 @@ import json
 # before starting, run
 # python3 -m clip_server
 # python3
+# Get this set up in terminal before running anything else:
+# (venv) (new_env_for_babyview_clip) marielleib@DNa808294 clip-alignment % python -m clip_server  
 
 # TODO: Add folder directory for where the videos are so it knows what directory to search through for the videos: in def scaling
 

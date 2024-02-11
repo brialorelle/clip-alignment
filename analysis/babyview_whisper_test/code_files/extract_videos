@@ -1,0 +1,69 @@
+import subprocess
+import json
+import csv
+import os
+from datetime import datetime
+
+
+def extract_video_clip(input_video, output_folder, start_time, end_time):
+    # Run FFmpeg command to extract the video clip
+    output_clip = os.path.join(output_folder, os.path.basename(input_video).split('.')[0] + '_clip.mp4')
+    cmd = [
+        'ffmpeg', 
+        '-i', input_video,
+        '-ss', start_time,
+        '-to', end_time,
+        '-c', 'copy',  # Copy codec without re-encoding
+        '-avoid_negative_ts', '1',  # Avoid negative timestamps
+        output_clip
+    ]
+    print("Ffmpeg command: ", cmd)
+    subprocess.run(cmd, check=True)  # Add check=True to raise an error if FFmpeg command fails
+    return output_clip
+
+def process_csv(input_csv, output_folder):
+    # Read the CSV and extract video clips
+    with open(input_csv, 'r') as csvfile:
+        csv_reader = csv.DictReader(csvfile)
+        for row in csv_reader:
+            input_video = row['video_path']
+            start_time = row['start']
+            end_time = row['end']
+            # Extract video clip
+            output_clip = extract_video_clip(input_video, output_folder, start_time, end_time)
+            row['output_video'] = output_clip
+
+    # Update the CSV with the location of the extracted video clips
+    fieldnames = csv_reader.fieldnames + ['output_video']
+    with open(input_csv, 'w', newline='') as csvfile:
+        csv_writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        csv_writer.writeheader()
+        for row in csv_reader:
+            csv_writer.writerow(row)
+    
+        print(f'CSV file "{input_csv}" has been edited.')
+
+
+if __name__ == "__main__":
+    # Example usage:
+    # get the name of the directory we're working in
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    # Find the last index of '/'
+    last_slash_index = script_directory.rfind('/')
+    # Remove everything after the last '/' so we have the parent dir
+    dir = script_directory[:last_slash_index + 1]
+    print(dir)
+
+    # get the directories for the folder of the csv files
+    csv_dir = os.path.join(dir, 'csvs')    
+
+    # Create a directory for the output video clips
+    output_folder = os.path.join(dir, 'video_clips')
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Process each CSV file in the directory
+    for root, _, files in os.walk(csv_dir):
+        for file in files:
+            if file.endswith('.csv'):
+                input_csv = os.path.join(root, file)
+                process_csv(input_csv, output_folder)

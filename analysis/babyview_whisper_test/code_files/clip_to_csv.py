@@ -37,11 +37,8 @@ def clip_service(csv_path, image_dir):
         # Find the last underscore and last period
         last_underscore_index = filename.rfind('_')
         last_period_index = filename.rfind('.')
-        print(last_underscore_index)
-        print(last_period_index)
         # Extract the substring between the last underscore and last period
-        utt_num = filename[last_underscore_index + 1 : last_period_index]    
-        print(utterance_num)
+        utt_num = filename[last_underscore_index + 1 : ]    
         utterance_num.append(utt_num)
         # Find the index of the second-to-last underscore by searching up to the last underscore
         second_last_underscore_index = filename.rfind("_", 0, last_underscore_index)  
