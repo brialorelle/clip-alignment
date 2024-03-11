@@ -1,0 +1,53 @@
+import csv
+import nltk
+from collections import Counter
+import os
+
+# Download the required NLTK data
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+
+def count_nouns(text):
+    # Tokenize the text into words
+    words = nltk.word_tokenize(text)
+    # Tag words with part of speech
+    tagged_words = nltk.pos_tag(words)
+    # Count the occurrences of nouns (NN, NNS, NNP, NNPS)
+    noun_count = sum(1 for word, pos in tagged_words if pos.startswith('NN'))
+    return noun_count
+
+def process_csv(input_csv, output_csv):
+    with open(input_csv, 'r') as csvfile:
+        csvreader = csv.reader(csvfile)
+        rows = list(csvreader)  # Read all rows into a list
+        for row in rows:
+            text = row[0]  # Assuming the text is in the first column
+            noun_count = count_nouns(text)
+            row.append(noun_count)  # Append the noun count to the row
+    # Write the updated rows back to the same CSV file
+    with open(input_csv, 'w', newline='') as outputfile:
+        csvwriter = csv.writer(outputfile)
+        csvwriter.writerows(rows)
+
+
+if __name__ == "__main__":
+    # Example usage:
+    # get the name of the directory we're working in
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    # Find the last index of '/'
+    last_slash_index = script_directory.rfind('/')
+    # Remove everything after the last '/' so we have the parent dir
+    dir = script_directory[:last_slash_index + 1]
+    print(dir)
+
+    # get the directories for the folder of the csv files
+    csv_dir = os.path.join(dir, 'csvs')    
+
+    csvs = []
+    for root, dirs, files in os.walk(csv_dir):
+        if not dirs:    # If there are no subdirectories, then these are bottom files
+            csvs.extend([os.path.join(root, file) for file in files])
+
+    for file in csvs:
+        input_csv = file
+        process_csv(input_csv)

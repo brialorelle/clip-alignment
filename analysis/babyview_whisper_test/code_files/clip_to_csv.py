@@ -38,7 +38,7 @@ def clip_service(csv_path, image_dir):
         last_underscore_index = filename.rfind('_')
         last_period_index = filename.rfind('.')
         # Extract the substring between the last underscore and last period
-        utt_num = filename[last_underscore_index + 1 : last_period_index]    
+        utt_num = filename[last_underscore_index + 1 : ]    
         utterance_num.append(utt_num)
         # Find the index of the second-to-last underscore by searching up to the last underscore
         second_last_underscore_index = filename.rfind("_", 0, last_underscore_index)  
@@ -71,4 +71,4 @@ def clip_service(csv_path, image_dir):
 
 
 if __name__ == "__main__":
-    clip_service()
+    clip_service("~/Downloads/test.csv", "00230001_GX010006_11.13.2023-11.19.2023_11.13.2023-8:14am_00:00:00.00_02.png")

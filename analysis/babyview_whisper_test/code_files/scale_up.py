@@ -7,6 +7,17 @@ from code_files.Transform_JSON import transform
 from code_files.apply_whisper_to_videos import apply_whisper
 from code_files.clip_to_csv import clip_service
 from code_files.extract_frames import extract_frames
+import csv
+import json
+
+# added for Marielle so I don't forget 
+# before starting, run
+# python3 -m clip_server
+# python3
+# Get this set up in terminal before running anything else:
+# (venv) (new_env_for_babyview_clip) marielleib@DNa808294 clip-alignment % python -m clip_server  
+
+# TODO: Add folder directory for where the videos are so it knows what directory to search through for the videos: in def scaling
 
 def cleaning_dirs(directory_path):
     print(f"Deleting intermediate files {directory_path}")
@@ -34,16 +45,31 @@ def process_video(video_path, frames_dir, csv_dir, mod_dir, whisper_dir, whisper
     output_csv = file_path + ".csv"
     print(f"File created at: {output_csv}")
     print(f"Processing video: {video_path}")
+
+    # get name of output file so the rest of the pipeline knows what to work with
+    file_path = os.path.join(whisper_dir, video_name)
+    init_json = file_path + ".json"
+    print("apply whisper output: ", init_json)
     
     if whisper:
         # obtain whisper timestamps and utterances
         apply_whisper(video_path, video_name, whisper_dir)
         print("applied whisper")
 
-    # get name of output file so the rest of the pipeline knows what to work with
-    file_path = os.path.join(whisper_dir, video_name)
-    init_json = file_path + ".json"
-    print("apply whisper output: ", init_json)
+        # start, end, text: need those names for a json so transform can run if whisper didn't produce the json
+        data = []
+        with open(file_path + ".csv", 'r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                # Rename the 'start_time' key to 'start'
+                if 'start_time' in row:
+                    row['start'] = row.pop('start_time')
+                if "end_time" in row:
+                    row['end'] = row.pop('end_time')
+                data.append(row)
+
+        with open(init_json, 'w') as json_file:
+            json.dump(data, json_file, indent=4)
     
     # extract just utterances and timestamps from output jsons
     json_name = transform(init_json, mod_dir)
@@ -77,7 +103,17 @@ def scaling(whisper=True):
     whisper_dir = os.path.join(dir, 'whisper_output')
     # whisper_dir =  os.path.join("/data/babyview/transcripts/Babyview_Main/00230001")
     
-    # identify the videos we're working with
+    # identify the videos we're working with if nested folder structure
+    vids = []
+    folder_dir = "" # ADD FOLDER DIRECTORY FOR VIDEOS
+    for root, dirs, files in os.walk(folder_dir):
+        if not dirs:    # If there are no subdirectories, then these are bottom files
+            vids.extend([os.path.join(root, file) for file in files])
+    video_files = vids
+    for video_file in video_files:
+            process_video(video_file, frames_dir, csv_dir, mod_dir, whisper_dir, whisper)
+
+    # identify the videos we're working with if not nested folder structure
     video_dir =  os.path.join("/data/babyview/Babyview_Main/00230001")
     video_extensions = ['MP4']  # Add more extensions if needed
     # apply the pipeline to each video in the videos directory

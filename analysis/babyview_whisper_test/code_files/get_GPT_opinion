@@ -1,0 +1,62 @@
+from transformers import GPT2Tokenizer, GPT2Model
+import torch
+import numpy as np
+from scipy.stats import pearsonr
+import openai
+
+# Set up your OpenAI API key
+openai.api_key = 'your-api-key'
+
+# Define the prompt with information about the video
+prompt = """
+Video Description:
+Title: Exploring the Grand Canyon
+Description: This video showcases the breathtaking views of the Grand Canyon from various angles. It captures the majestic beauty of the landscape and the awe-inspiring natural formations.
+"""
+
+# Call the OpenAI API to generate a description
+response = openai.Completion.create(
+    engine="text-davinci-003",  # Choose the GPT-3 model (you can experiment with other models too)
+    prompt=prompt,
+    max_tokens=100  # Adjust the max_tokens parameter based on the desired length of the description
+)
+
+# Print the generated description
+print(response.choices[0].text.strip())
+
+
+# Load pre-trained GPT2 model and tokenizer
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+model = GPT2Model.from_pretrained("gpt2")
+
+# Example video descriptions and whisper transcripts
+video_descriptions = ["Description of video 1", "Description of video 2", ...]
+whisper_transcripts = ["Transcript of video 1", "Transcript of video 2", ...]
+
+# Generate embeddings for video descriptions
+video_description_embeddings = []
+for description in video_descriptions:
+    inputs = tokenizer(description, return_tensors="pt", max_length=512, truncation=True)
+    outputs = model(**inputs)
+    last_hidden_state = outputs.last_hidden_state
+    avg_pooling = torch.mean(last_hidden_state, dim=1)
+    video_description_embeddings.append(avg_pooling)
+
+# Generate embeddings for whisper transcripts
+whisper_transcript_embeddings = []
+for transcript in whisper_transcripts:
+    inputs = tokenizer(transcript, return_tensors="pt", max_length=512, truncation=True)
+    outputs = model(**inputs)
+    last_hidden_state = outputs.last_hidden_state
+    avg_pooling = torch.mean(last_hidden_state, dim=1)
+    whisper_transcript_embeddings.append(avg_pooling)
+
+# Calculate correlation between embeddings
+correlations = []
+for desc_emb, trans_emb in zip(video_description_embeddings, whisper_transcript_embeddings):
+    corr, _ = pearsonr(desc_emb.squeeze().detach().numpy(), trans_emb.squeeze().detach().numpy())
+    correlations.append(corr)
+
+# Print correlations
+for i, corr in enumerate(correlations):
+    print(f"Correlation between video {i+1} description and whisper transcript: {corr}")
