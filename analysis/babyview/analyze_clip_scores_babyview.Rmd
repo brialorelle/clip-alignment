@@ -1,0 +1,83 @@
+---
+title: "Analyzing xs-face clip scores"
+author: "Bria Long"
+date: "2023-11-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggthemes)
+```
+
+
+```{R}
+clip_scores_path = here::here('data/babyview/clip_scores/')
+
+csv_files <- list.files(clip_scores_path, pattern = "\\.csv$", full.names = TRUE)
+list_of_tibbles <- lapply(csv_files, read_csv)
+all_data <- bind_rows(list_of_tibbles)
+```
+
+
+
+```{r}
+
+
+clip_scores_clean <- all_data %>%
+  filter(!is.na(r_value)) %>%
+  select(-utterance_num) %>%
+  mutate(clip_cor_scaled  = scale(r_value))
+```
+
+
+```{r}
+cor_by_utterance <- clip_scores_clean %>%
+  mutate(timestamps_cleaned  = as.POSIXct(timestamp, format="%H:%M:%S")) %>%
+  group_by(utterance) %>%
+  mutate(last_timestamp = max(timestamps_cleaned), first_timestamp = min(timestamps_cleaned), length_seconds = difftime(last_timestamp, first_timestamp, units='secs')) %>%
+    group_by(utterance) %>%
+  dplyr::summarize(length_seconds = length_seconds[1], clip_score_max = max(r_value), clip_score_avg = mean(r_value), num_values = length(unique(image_path)), ) %>%
+  arrange(-clip_score_max)
+```
+
+```{r}
+ggplot(data = cor_by_utterance, aes(x=clip_score_max, y=clip_score_avg)) +
+  geom_point()
+
+```
+
+
+# Load udpipe
+```{r}
+library(udpipe)
+m_eng_ewt_path = "/Users/brialong/Documents/GitHub/online-vocab-assessment/item_generation/1_item_selection/english-ewt-ud-2.5-191206.udpipe"
+m_eng_ewt_loaded <- udpipe_load_model(file = m_eng_ewt_path)
+```
+
+```{r}
+cor_by_utterance_with_nous <- cor_by_utterance %>%
+  group_by(utterance)  %>%
+  mutate(num_nouns = sum(as.data.frame(udpipe_annotate(m_eng_ewt_loaded, x= utterance))$upos=="NOUN"))
+```
+```{r}
+ggplot(cor_by_utterance_with_nous %>% filter(num_nouns<20 & num_values<100), aes(x=num_nouns, y=clip_score_max, size=num_values)) +
+  geom_jitter(alpha=.2, width=.2) +
+  ylab('clip score') +
+  xlab('number of nouns')
+```
+
+
+
+```{r}
+top_utterances <- cor_by_utterance_with_nous %>%
+  ungroup() %>%
+  arrange(clip_score_max)
+
+```
