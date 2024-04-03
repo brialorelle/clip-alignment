@@ -31,14 +31,28 @@ def save_embedding(embedding, dir_path, file_name):
     return path
 
 
-def calculate_dot_product(frame_folder, text, utterance_no, model):
+def calculate_dot_product(frame_folder, text, utterance_no, model, token_limit=77):
     results = []
-    # Preprocess and encode the text
-    text_input = clip.tokenize([text]).to(device)
-    text_features = model.encode_text(text_input)
-    text_features /= text_features.norm(dim=-1, keepdim=True)
-    text_embedding_path = save_embedding(text_features, os.path.join(save_root_dir, f'all_embeddings/text_embeddings/{video_file_name}'), f'{utterance_no}_text_embedding.npy')
-
+    # Split the text into chunks within the token limit
+    text_chunks = [text[i:i+token_limit] for i in range(0, len(text), token_limit)]
+    combined_text_features = None
+    
+    for chunk in text_chunks:
+        # Preprocess and encode each text chunk
+        text_input = clip.tokenize([chunk]).to(device)
+        text_features_chunk = model.encode_text(text_input)
+        text_features_chunk /= text_features_chunk.norm(dim=-1, keepdim=True)
+        
+        # Combine encoded features of all chunks by averaging
+        if combined_text_features is None:
+            combined_text_features = text_features_chunk
+        else:
+            combined_text_features += text_features_chunk
+   
+    # Average the combined text features if text was split into chunks
+    if len(text_chunks) > 1:
+        combined_text_features /= len(text_chunks)
+    text_embedding_path = save_embedding(combined_text_features, os.path.join(save_root_dir, f'all_embeddings/text_embeddings/{video_file_name}'), f'{utterance_no}_text_embedding.npy')
     # Iterate through each frame in the folder
     for frame in os.listdir(frame_folder):
         if frame.endswith(".jpg"):
@@ -52,8 +66,9 @@ def calculate_dot_product(frame_folder, text, utterance_no, model):
             image_embedding_path = save_embedding(frame_features, os.path.join(save_root_dir, f'all_embeddings/image_embeddings/{video_file_name}/{utterance_no}'), f'{os.path.splitext(frame)[0]}_image_embedding.npy')
 
             # Calculate dot product
-            dot_product = (text_features @ frame_features.T).detach().cpu().numpy()[0][0]
+            dot_product = (text_embedding_path @ frame_features.T).detach().cpu().numpy()[0][0]
             del frame_image
+            del frame_features
             torch.cuda.empty_cache()
             
             results.append({
