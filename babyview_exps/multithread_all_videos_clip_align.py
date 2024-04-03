@@ -48,7 +48,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         all_mp4_files = glob(os.path.join(babyview_video_folder, subject, "*.MP4"))
         for index, mp4_full_path in enumerate(all_mp4_files):
             futures.append(executor.submit(process_video, mp4_full_path, subject))
-    
+
     progress_bar = tqdm(total=len(futures))
     # Progress bar for futures
     for future in concurrent.futures.as_completed(futures):

@@ -6,6 +6,7 @@ import argparse
 from clip_client import Client
 from docarray import Document, DocumentArray
 
+
 # Initialize the argparse
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument("--video_file", type=str, required=True)
@@ -40,9 +41,9 @@ def calculate_dot_product(frame_folder, text, utterance_no):
         if frame.endswith(".jpg"):
             frame_path = os.path.join(frame_folder, frame)
             # Load and preprocess the frame
-            frame_image = Document(uri=frame_path).convert_uri_to_image_tensor()
+            # frame_image = Document(uri=frame_path)
             # Encode the frame to get its embedding
-            image_embedding = client.encode([frame_image])[0]
+            image_embedding = client.encode([frame_path])[0]
             image_embedding_path = save_embedding(image_embedding, os.path.join(save_root_dir, f'all_embeddings/image_embeddings/{video_file_name}/{utterance_no}'), f'{os.path.splitext(frame)[0]}_image_embedding.npy')
             
             # Calculate dot product
