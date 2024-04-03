@@ -1,0 +1,14 @@
+jtype: Flow
+version: '1'
+with:
+  port: 51000
+executors:
+  - name: clip_r
+    replicas: 4
+    uses:
+      jtype: CLIPEncoder
+      metas:
+        py_modules:
+          - clip_server.executors.clip_tensorrt
+    timeout_ready: 3000000
+    replicas: 1
