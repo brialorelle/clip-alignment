@@ -3,22 +3,23 @@ from glob import glob
 import re
 from tqdm import tqdm
 import argparse
-import concurrent.futures
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import torch
 
 # Setup argument parser
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument("--babyview_folder", type=str, required=True)
 args_parser.add_argument("--babyview_transcript_folder", type=str, required=True)
 args_parser.add_argument("--output_root_dir", type=str, required=True)
-args_parser.add_argument("--max_workers", type=int, default=4, help="Maximum number of worker threads")
+args_parser.add_argument("--frame_batch_size", type=int, default=512)
+args_parser.add_argument("--clip_batch_size", type=int, default=256)
+args_parser.add_argument("--prefetch", type=int, default=100)
 args = args_parser.parse_args()
 
 babyview_video_folder = args.babyview_folder
 babyview_transcript_folder = args.babyview_transcript_folder
 output_root_dir = args.output_root_dir
-max_workers = args.max_workers
+frame_batch_size = args.frame_batch_size
+clip_batch_size = args.clip_batch_size
+prefetch = args.prefetch
 
 cwd_path = os.getcwd()
 os.makedirs(output_root_dir, exist_ok=True)
@@ -38,19 +39,15 @@ def process_video(mp4_full_path, subject):
         return
     
     # Replace with the correct script path and its arguments
-    command = f"python3 {cwd_path}/clip_on_all_frames.py --video_file {mp4_full_path} --csv_file {transcript_full_path} --save_root_dir {output_full_path}"
+    # command = f"python3 {cwd_path}/clip_on_all_frames.py --video_file {mp4_full_path} --csv_file {transcript_full_path} --save_root_dir {output_full_path}"
+    command = f"python3 {cwd_path}/batch_clip_on_all_frames.py --video_file {mp4_full_path} --csv_file {transcript_full_path} --save_root_dir {output_full_path} --frame_batch_size {frame_batch_size} --clip_batch_size {clip_batch_size} --prefetch {prefetch}"
     os.system(command)
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-    # Submit all video processing tasks to the executor
-    futures = []
-    for subject in all_subject_number_list:
-        all_mp4_files = glob(os.path.join(babyview_video_folder, subject, "*.MP4"))
-        for index, mp4_full_path in enumerate(all_mp4_files):
-            futures.append(executor.submit(process_video, mp4_full_path, subject))
-
-    progress_bar = tqdm(total=len(futures))
-    # Progress bar for futures
-    for future in concurrent.futures.as_completed(futures):
+# Process each video in a single-threaded manner
+progress_bar = tqdm(total=total_number_of_videos)
+for subject in all_subject_number_list:
+    print("Current Subject:", subject)
+    all_mp4_files = glob(os.path.join(babyview_video_folder, subject, "*.MP4"))
+    for mp4_full_path in all_mp4_files:
+        process_video(mp4_full_path, subject)
         progress_bar.update(1)
-        future.result() # This line is optional, it will raise exceptions if any occurred during the function execution

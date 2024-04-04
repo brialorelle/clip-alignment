@@ -35,15 +35,16 @@ def calculate_dot_product(frame_folder, text, utterance_no):
     results = []
     # Encode the text to get its embedding
     text_embedding = client.encode([text])[0]
+    text_embedding /= np.linalg.norm(text_embedding)  # Normalization
     text_embedding_path = save_embedding(text_embedding, os.path.join(save_root_dir, f'all_embeddings/text_embeddings/{video_file_name}'), f'{utterance_no}_text_embedding.npy')
     
     for frame in os.listdir(frame_folder):
         if frame.endswith(".jpg"):
             frame_path = os.path.join(frame_folder, frame)
-            # Load and preprocess the frame
-            # frame_image = Document(uri=frame_path)
             # Encode the frame to get its embedding
             image_embedding = client.encode([frame_path])[0]
+            image_embedding /= np.linalg.norm(image_embedding)  # Normalization
+
             image_embedding_path = save_embedding(image_embedding, os.path.join(save_root_dir, f'all_embeddings/image_embeddings/{video_file_name}/{utterance_no}'), f'{os.path.splitext(frame)[0]}_image_embedding.npy')
             
             # Calculate dot product
