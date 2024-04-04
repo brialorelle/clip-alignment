@@ -19,7 +19,7 @@ conda activate torch
 python -m clip_server ./tensorrt-flow_replica_4.yml
 ```
 
-# Run CLIP on all videos(8 workers)
+# Run CLIP on all videos(Batch mode)
 ```
-python multithread_all_videos_clip_align.py  --babyview_folder /data/yinzi/babyview/Babyview_Main --babyview_transcript_folder /data/yinzi/babyview/transcripts/Babyview_Main  --output_root_dir /data/yinzi/babyview/all_clip_results --max_workers 8
+python all_videos_clip_batch.py --babyview_folder /data/yinzi/babyview/Babyview_Main --babyview_transcript_folder /data/yinzi/babyview/transcripts/Babyview_Main  --output_root_dir /data/yinzi/babyview/all_clip_results 
 ```
