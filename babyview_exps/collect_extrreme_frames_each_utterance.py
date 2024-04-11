@@ -31,6 +31,7 @@ for subject in tqdm(all_subject_number_list):
         utterances = single_video_df['utterance_no'].unique()
         for utterance_no in utterances:
             utterance_df = single_video_df[single_video_df['utterance_no'] == utterance_no]
+            utterance_transcript = utterance_df['text']
             max_frame = utterance_df.loc[utterance_df['dot_product'].idxmax()]
             min_frame = utterance_df.loc[utterance_df['dot_product'].idxmin()]
             max_dot_product = max_frame['dot_product']
@@ -40,6 +41,7 @@ for subject in tqdm(all_subject_number_list):
                 continue
             result = {
                 "utterance_no": utterance_no,
+                "text": utterance_transcript,
                 "max_frame": max_frame['frame'],
                 "max_dot_product": max_dot_product,
                 "min_frame": min_frame['frame'],
@@ -55,7 +57,7 @@ for subject in tqdm(all_subject_number_list):
         print(len(all_mp4_files))
         print(output_csv_dir)
     # random sample some utterances for each subject
-    chosen_frame_df = extreme_frame_df.sample(sample_number)
+    chosen_frame_df = extreme_frame_df.sample(sample_number, random_state=1)
     all_chosen_frames_df = pd.concat([all_chosen_frames_df, chosen_frame_df], ignore_index=True)
 # %% Copy the chosen frames to a new folder
 os.makedirs(os.path.join(output_root_dir, "all_clip_results","chosen_frames"), exist_ok=True)
@@ -65,16 +67,20 @@ os.makedirs(save_frame_dir, exist_ok=True)
 all_paths = []
 for index, row in all_chosen_frames_df.iterrows():
     utterance_no = row['utterance_no']
+    text = row['text']
     max_frame_source_path = row['max_frame']
     max_frame_score = row['max_dot_product']
     min_frame_source_path = row['min_frame']
     min_frame_score = row['min_dot_product']
 
-    max_frame_dest_path = os.path.join(save_frame_dir, f"{utterance_no}_{index}_clip_{max_frame_score}.jpg")
-    min_frame_dest_path = os.path.join(save_frame_dir, f"{utterance_no}_{index}_clip_{min_frame_score}.jpg")
+    max_frame_dest_path = os.path.join(save_frame_dir, f"{utterance_no}_clip_{max_frame_score}.jpg")
+    min_frame_dest_path = os.path.join(save_frame_dir, f"{utterance_no}_clip_{min_frame_score}.jpg")
     all_paths.append(max_frame_source_path)
     all_paths.append(min_frame_source_path)
     # copy the frame to the save_frame_dir
     copy2(max_frame_source_path, max_frame_dest_path)
     copy2(min_frame_source_path, min_frame_dest_path)
+
+# save all_chosen_frames_df to a csv file
+all_chosen_frames_df.to_csv(os.path.join(save_frame_dir, "chosen_frames.csv"), index=False)
 # %%
