@@ -14,6 +14,7 @@ conda activate torch
 conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
 conda install ffmpeg
 pip install numpy pandas tqdm opencv-python pillow
+pip install matplotlib
 pip install clip-server
 pip install clip-client
 pip install nvidia-pyindex 
