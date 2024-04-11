@@ -1,4 +1,3 @@
-# %% Sample the highest and lowest score frames for each subject
 import os
 import pandas as pd
 from tqdm import tqdm
@@ -6,75 +5,68 @@ from glob import glob
 from PIL import Image
 import matplotlib.pyplot as plt
 
+# Paths setup
 babyview_video_folder = "/data/yinzi/babyview/Babyview_Main"
 output_root_dir = "/data/yinzi/babyview/"
 all_subject_number_list = sorted(os.listdir(babyview_video_folder))
 # exclude pilot subjects
-exlucde_subjects = ['Bria_Long', 'Erica_Yoon']
-all_subject_number_list = [subject for subject in all_subject_number_list if subject not in exlucde_subjects]
-total_number_of_videos = sum([len(glob(os.path.join(babyview_video_folder, subject, "*.MP4")) ) for subject in all_subject_number_list])
+exclude_subjects = ['Bria_Long', 'Erica_Yoon']
+all_subject_number_list = [subject for subject in all_subject_number_list if subject not in exclude_subjects]
+total_number_of_videos = sum([len(glob(os.path.join(babyview_video_folder, subject, "*.MP4"))) for subject in all_subject_number_list])
 
+all_results = []  # This will store results from all subjects
 
-all_chosen_frames_df = pd.DataFrame()
-for subject in tqdm(all_subject_number_list):
+for subject in tqdm(all_subject_number_list, desc="Processing Subjects"):
     all_mp4_files = glob(os.path.join(babyview_video_folder, subject, "*.MP4"))
-    results = []
-    for mp4_full_path in tqdm(all_mp4_files):
+    for mp4_full_path in tqdm(all_mp4_files, desc="Processing Videos"):
         video_file_name = os.path.splitext(os.path.basename(mp4_full_path))[0]
-        output_csv_dir = os.path.join(output_root_dir, "all_clip_results",subject, "all_result_csv_files", video_file_name,'clip_final_results.csv')
+        output_csv_dir = os.path.join(output_root_dir, "all_clip_results", subject, "all_result_csv_files", video_file_name, 'clip_final_results.csv')
+        
+        # Checking if the result file exists
+        if not os.path.exists(output_csv_dir):
+            print(f"Missing data for {video_file_name}")
+            continue
+        
         single_video_df = pd.read_csv(output_csv_dir)
-        # skip Nan values
-        single_video_df = single_video_df.dropna(subset=['dot_product'])
-        # rename the utterance_no in format: {video_name}_{utterance_no}
-        single_video_df['utterance_no'] = single_video_df['utterance_no'].apply(lambda x: f"{video_file_name}_{x}")
-        utterances = single_video_df['utterance_no'].unique()
-        for utterance_no in utterances:
-            utterance_df = single_video_df[single_video_df['utterance_no'] == utterance_no]
-            utterance_transcript = utterance_df['text'].iloc[0]
-            max_frame = utterance_df.loc[utterance_df['dot_product'].idxmax()]
-            min_frame = utterance_df.loc[utterance_df['dot_product'].idxmin()]
-            max_dot_product = max_frame['dot_product']
-            min_dot_product = min_frame['dot_product']
-            if max_dot_product == min_dot_product:
-                # print(f"Same dot product for {utterance_no}")
-                continue
-            result = {
-                "utterance_no": utterance_no,
-                "text": utterance_transcript,
-                "max_frame": max_frame['frame'],
-                "max_dot_product": max_dot_product,
-                "min_frame": min_frame['frame'],
-                "min_dot_product": min_dot_product
-            }
-            results.append(result)
-    extreme_frame_df = pd.DataFrame(results)
-    sample_number = 10
-    if len(extreme_frame_df) < sample_number:
-        print(f"Less than 10 valid utterances for {subject}, only {len(extreme_frame_df)} valid utterances.")
-        sample_number = len(extreme_frame_df)
-        print(len(utterances))
-        print(len(all_mp4_files))
-        print(output_csv_dir)
-    # random sample some utterances for each subject
-    chosen_frame_df = extreme_frame_df.sample(sample_number, random_state=1)
-    all_chosen_frames_df = pd.concat([all_chosen_frames_df, chosen_frame_df], ignore_index=True)
-# %% Save the chosen frames to a folder
-save_frame_dir = os.path.join(output_root_dir, "all_clip_results","chosen_frames")
+        single_video_df = single_video_df.dropna(subset=['dot_product'])  # skip NaN values
+        single_video_df['utterance_no'] = single_video_df['utterance_no'].apply(lambda x: f"{video_file_name}_{x}")  # rename the utterance_no
+        
+        # Collecting data
+        for _, group in single_video_df.groupby('utterance_no'):
+            max_entry = group.loc[group['dot_product'].idxmax()]
+            min_entry = group.loc[group['dot_product'].idxmin()]
+            
+            all_results.append({
+                "utterance_no": max_entry['utterance_no'],
+                "text": max_entry['text'],
+                "max_frame": max_entry['frame'],
+                "max_dot_product": max_entry['dot_product'],
+                "min_frame": min_entry['frame'],
+                "min_dot_product": min_entry['dot_product']
+            })
+
+# Creating DataFrame from results
+all_results_df = pd.DataFrame(all_results)
+
+# Sorting by 'max_dot_product' to find the top 200 utterances
+top_utterances_df = all_results_df.sort_values(by='max_dot_product', ascending=False).head(200)
+
+# Save these top utterances into a CSV
+save_frame_dir = os.path.join(output_root_dir, "all_clip_results", "chosen_frames_new")
 os.makedirs(save_frame_dir, exist_ok=True)
-# Plotting and saving frames with titles
-for index, row in tqdm(all_chosen_frames_df.iterrows(), total=all_chosen_frames_df.shape[0], desc="Adding Titles"):
+top_utterances_df.to_csv(os.path.join(save_frame_dir, "top_utterances.csv"), index=False)
+
+# Plotting and saving the frames for these top utterances
+for index, row in tqdm(top_utterances_df.iterrows(), total=top_utterances_df.shape[0], desc="Adding Titles and Saving Frames"):
     for frame_type in ['max_frame', 'min_frame']:
         frame_path = row[frame_type]
         frame_score = row[frame_type.replace('frame', 'dot_product')]
-        dest_path = os.path.join(save_frame_dir, f"{row['utterance_no']}_clip_{frame_score:.5f}.jpg")
+        dest_path = os.path.join(save_frame_dir, f"{frame_score:.5f}_{row['utterance_no']}_clip.jpg")
         
-        # Open the image file
         img = Image.open(frame_path)
         plt.figure(figsize=(10, 8))
         plt.imshow(img)
-        plt.title(row['text'], fontsize=12)  # Set the transcript text as the title
-        plt.axis('off')  # Hide axes
+        plt.title(f"{row['text']} ({frame_score:.2f})", fontsize=12)
+        plt.axis('off')
         plt.savefig(dest_path, bbox_inches='tight', pad_inches=0)
         plt.close()
-# save all_chosen_frames_df to a csv file
-all_chosen_frames_df.to_csv(os.path.join(save_frame_dir, "chosen_frames.csv"), index=False)
