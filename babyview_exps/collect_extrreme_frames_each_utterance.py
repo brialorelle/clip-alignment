@@ -1,10 +1,11 @@
-# %%
+# %% Sample the highest and lowest score frames for each subject
 import os
 import re
 import csv
 import pandas as pd
 from tqdm import tqdm
 from glob import glob
+from shutil import copy2
 
 babyview_video_folder = "/data/yinzi/babyview/Babyview_Main"
 output_root_dir = "/data/yinzi/babyview/"
@@ -64,11 +65,7 @@ for subject in all_subject_number_list:
     # random sample some utterances for each subject
     chosen_frame_df = extreme_frame_df.sample(sample_number)
     all_chosen_frames_df = pd.concat([all_chosen_frames_df, chosen_frame_df], ignore_index=True)
-#%%
-    
-#%% 
-from shutil import copy2
-
+# %% Copy the chosen frames to a new folder
 save_frame_dir = os.path.join(output_root_dir, "all_clip_results","chosen_frames")
 os.makedirs(save_frame_dir, exist_ok=True)
 # save the chosen highest and lowest dot product frames for each subject
@@ -87,6 +84,3 @@ for index, row in all_chosen_frames_df.iterrows():
     # copy the frame to the save_frame_dir
     copy2(max_frame_source_path, max_frame_dest_path)
     copy2(min_frame_source_path, min_frame_dest_path)
-
-    
-# %%
