@@ -1,3 +1,4 @@
+#%%
 import os
 import pandas as pd
 from tqdm import tqdm
@@ -51,6 +52,7 @@ all_results_df = pd.DataFrame(all_results)
 # Sorting by 'max_dot_product' to find the top 200 utterances
 top_utterances_df = all_results_df.sort_values(by='max_dot_product', ascending=False).head(200)
 
+# %%
 # Save these top utterances into a CSV
 save_frame_dir = os.path.join(output_root_dir, "all_clip_results", "chosen_frames_new")
 os.makedirs(save_frame_dir, exist_ok=True)
@@ -58,7 +60,8 @@ top_utterances_df.to_csv(os.path.join(save_frame_dir, "top_utterances.csv"), ind
 
 # Plotting and saving the frames for these top utterances
 for index, row in tqdm(top_utterances_df.iterrows(), total=top_utterances_df.shape[0], desc="Adding Titles and Saving Frames"):
-    for frame_type in ['max_frame', 'min_frame']:
+    # for frame_type in ['max_frame', 'min_frame']:
+    for frame_type in ['max_frame']:
         frame_path = row[frame_type]
         frame_score = row[frame_type.replace('frame', 'dot_product')]
         dest_path = os.path.join(save_frame_dir, f"{frame_score:.5f}_{row['utterance_no']}_clip.jpg")
