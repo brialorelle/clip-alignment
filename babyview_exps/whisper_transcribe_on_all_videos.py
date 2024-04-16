@@ -47,11 +47,20 @@ def main():
             print(f"Error: Could not extract subject ID from {file_name}, skip")
             continue
         result = pipe(audio_file, return_timestamps=True)
-        res_df = pd.DataFrame({
-            'start_time': [c['timestamp'][0] for c in result['chunks']],
-            'end_time': [c['timestamp'][1] for c in result['chunks']],
-            'text': [c['text'] for c in result['chunks']]
-        })
+        # Convert timestamps to continuous time
+        current_time = 0.0
+        data = []
+        for chunk in result['chunks']:
+            start_time = current_time
+            end_time = start_time + (chunk['timestamp'][1] - chunk['timestamp'][0])
+            data.append({
+                'start_time': round(start_time, 2),
+                'end_time': round(end_time, 2),
+                'text': chunk['text']
+            })
+            current_time = end_time  # Update current time
+        # Save result to csv
+        res_df = pd.DataFrame(data)
         output_path = os.path.join(transcript_output_folder, subject_id, f"{file_name}.csv")
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         res_df.to_csv(output_path, index_label="utterance_no")

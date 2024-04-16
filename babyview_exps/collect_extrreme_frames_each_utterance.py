@@ -21,7 +21,8 @@ for subject in tqdm(all_subject_number_list, desc="Processing Subjects"):
     all_mp4_files = glob(os.path.join(babyview_video_folder, subject, "*.MP4"))
     for mp4_full_path in tqdm(all_mp4_files, desc="Processing Videos"):
         video_file_name = os.path.splitext(os.path.basename(mp4_full_path))[0]
-        output_csv_dir = os.path.join(output_root_dir, "all_clip_results", subject, "all_result_csv_files", video_file_name, 'clip_final_results.csv')
+        # output_csv_dir = os.path.join(output_root_dir, "all_clip_results", subject, "all_result_csv_files", video_file_name, 'clip_final_results.csv')
+        output_csv_dir = os.path.join(output_root_dir, "all_clip_results_large_v3", subject, "all_result_csv_files", video_file_name, 'clip_final_results.csv')
         
         # Checking if the result file exists
         if not os.path.exists(output_csv_dir):
@@ -54,7 +55,8 @@ top_utterances_df = all_results_df.sort_values(by='max_dot_product', ascending=F
 
 # %%
 # Save these top utterances into a CSV
-save_frame_dir = os.path.join(output_root_dir, "all_clip_results", "chosen_frames_new")
+# save_frame_dir = os.path.join(output_root_dir, "all_clip_results", "chosen_frames_new")
+save_frame_dir = os.path.join(output_root_dir, "all_clip_results_large_v3", "chosen_frames_large_v3")
 os.makedirs(save_frame_dir, exist_ok=True)
 top_utterances_df.to_csv(os.path.join(save_frame_dir, "top_utterances.csv"), index=False)
 

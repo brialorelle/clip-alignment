@@ -39,14 +39,24 @@ def main():
     )
 
     result = pipe(input_audio, return_timestamps=True)
+    # Convert timestamps to continuous time
+    current_time = 0.0
+    data = []
+    for chunk in result['chunks']:
+        start_time = current_time
+        end_time = start_time + (chunk['timestamp'][1] - chunk['timestamp'][0])
+        data.append({
+            'start_time': round(start_time, 2),
+            'end_time': round(end_time, 2),
+            'text': chunk['text']
+        })
+        current_time = end_time  # Update current time
+
+    # Save result to csv
+    res_df = pd.DataFrame(data)
     file_name = os.path.basename(input_audio)
     file_name = re.sub(r"\.mp3$", "", file_name)
     subject_id = file_name.split("_")[0]
-    res_df = pd.DataFrame({
-                'start_time': [c['timestamp'][0] for c in result['chunks']],
-                'end_time': [c['timestamp'][1] for c in result['chunks']],
-                'text': [c['text'] for c in result['chunks']]
-            })
     output_path = os.path.join(output_transcript_folder, subject_id, f"{file_name}.csv")
     res_df.to_csv(output_path, index_label="utterance_no")
 
