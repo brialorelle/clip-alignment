@@ -1,0 +1,193 @@
+---
+title: "Analyzing xs-face clip scores"
+author: "Bria Long"
+date: "2023-11-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggthemes)
+```
+
+
+```{R}
+# clip_scores = read_csv(here::here('data/xs-face/clip_scores/all_namings_with_cor.csv'))
+clip_scores = read_csv(here::here('/home/yinzi/workspace/clip-alignment/all_namings_with_cor.csv'))
+```
+
+```{R}
+# demo <- read_csv(here::here('data/xs-face/demographics_updated.csv')) %>%
+demo <- read_csv(here::here('/home/yinzi/workspace/clip-alignment/data/xs-face/demographics_updated.csv')) %>%
+  select(subid, age.grp, age.at.test)
+  
+```
+
+```{r}
+fam <- c("ball", "brush", "car", "cat")
+novel <- c("gimo", "manu", "tima", "zem")
+
+clip_scores_clean <- clip_scores %>%
+  filter(!is.na(clip_cor)) %>%
+  left_join(demo, by=c('child_id' = 'subid')) %>%
+  mutate(object_type = case_when(name %in% fam ~ 'Familiar',
+                                 name %in% novel ~ 'Novel'))
+```
+
+```{r}
+ggplot(clip_scores_clean, aes(x=name, y=clip_cor, col=object_type)) +
+  geom_point(alpha=.6) +
+  facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utterance - image)')+
+  xlab('Object name') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+```
+
+```{r}
+ggplot(clip_scores_clean, aes(x=age.at.test, y=clip_cor, col=name)) +
+  geom_point(alpha=.6) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Age at test (months)') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm')
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+```
+
+```{r}
+clip_scores_clean <- clip_scores_clean %>%
+  group_by(child_id) %>%
+  mutate(session_time = scale(time))
+```
+```{r}
+ggplot(clip_scores_clean, aes(x=child_id, y=clip_cor, col=age.grp)) +
+  geom_boxplot() +
+  geom_point(alpha=.6) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Subject') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+  
+```
+
+```{r}
+
+# clip_scores_clean <- clip_scores_clean %>%
+#   group_by(child_id) %>%
+#   mutate(child_clip_avg = mean(clip_cor))
+
+ggplot(clip_scores_clean, aes(fct_reorder(child_id, -clip_cor, .fun = mean), clip_cor, col=object_type)) +
+  geom_boxplot() +
+  geom_point(alpha=.6) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Subject') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+  
+```
+
+```{R}
+library(lme4)
+library(lmerTest)
+summary(lmer(data=clip_scores_clean, clip_cor ~ age.at.test*object_type + (1|child_id) + (1|name)))
+```
+
+```{r}
+ggplot(clip_scores_clean, aes(x=age.at.test, y=clip_cor, col=object_type)) +
+  geom_point(alpha=.6) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Age at test (months)') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm')
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+```
+```{r}
+library("langcog")
+```
+
+```{r}
+by_subject <- clip_scores_clean %>%
+  group_by(object_type, child_id, age.at.test) %>%
+  multi_boot_standard(col = 'clip_cor')
+```
+```{r}
+ggplot(clip_scores_clean, aes(x=age.at.test, y=clip_cor, col=object_type)) +
+  geom_point(alpha=.6) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Age at test (months)') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm')
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+```
+
+```{r}
+ggplot(by_subject, aes(x=age.at.test, y=mean, col=object_type)) +
+  geom_point(alpha=.6) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper)) +
+  # facet_wrap(~age.grp) +
+  ylab('CLIP correlation (utteracnce - image)')+
+  xlab('Age at test (months)') +
+  theme_few(base_size=12) +
+  ggtitle('CLIP correlation when object was present in frame') +
+  geom_smooth(method='lm')
+  # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+```
+
+# Lets get some example frames
+```{r}
+best_examples <- clip_scores_clean %>%
+  filter(object_type=='Familiar') %>%
+  filter(clip_cor>quantile(clip_cor,.99)) %>%
+  mutate(image_name = paste0(here::here('/data/yinzi/xs_face/frames_full_working',child_id, name, time),'.jpg')) %>%
+  mutate(new_image_name =  paste0(here::here('data/xs-face/best_aligment_examples/'),round(clip_cor,3), child_id, name, time,'.jpg'))
+```
+
+```{r}
+worst_examples <- clip_scores_clean %>%
+  filter(object_type=='Familiar') %>%
+  filter(clip_cor>quantile(clip_cor,.01)) %>%
+  mutate(image_name = paste0(here::here('/data/yinzi/xs_face/frames_full_working',child_id, name, time),'.jpg')) %>%
+  mutate(new_image_name =  paste0(here::here('data/xs-face/worst_aligment_examples/'),round(clip_cor,3), child_id, name, time,'.jpg'))
+```
+
+```{r}
+dir.create(here::here('data/xs-face/best_aligment_examples/'))
+fs::file_copy(best_examples$image_name, best_examples$new_image_name)
+```
+
+```{r}
+dir.create(here::here('data/xs-face/worst_aligment_examples/'))
+fs::file_copy(worst_examples$image_name, worst_examples$new_image_name)
+```
+
+
+
+Objects were present in the `mean(!is.na(clip_scores$clip_cor))` of the naming events.
