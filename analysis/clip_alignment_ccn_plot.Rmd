@@ -1,0 +1,193 @@
+---
+title: "clip_alignment_analyses"
+author: "Bria Long"
+date: "2024-04-10"
+output: html_document
+---
+
+
+
+```{r}
+library(tidyverse)
+library(here)
+```
+# Load preprocessed data
+```{r}
+data_path = here::here('data/babyview/clip_processed')
+csv_files <- dir(data_path, recursive = TRUE, full.names = TRUE, pattern = "\\.csv$")
+```
+```{r}
+count_files=0
+# csv_files = csv_files[-72]
+```
+
+```{r}
+for (c in csv_files) {
+  print(c)
+  count_files = count_files+1
+  
+  this_sub <- invisible(read_csv(c, show_col_types=FALSE)) 
+  if (nrow(this_sub)>0){
+  if (count_files==1){
+    all_data = this_sub
+  }
+  else (count_files>1)
+    all_data = bind_rows(all_data, this_sub)
+  }
+}
+```
+
+```{r}
+families = read_csv(here::here('data/babyview/Families-Enrolled - Families-Enrolled.csv'))
+```
+
+```{r}
+to_join <- families %>%
+    mutate(subject_id = as.factor(`Subject ID`)) %>%
+    select(subject_id, DoB)  %>%
+    filter(!is.na(subject_id)) %>%
+  mutate(subject_id = paste0('00',subject_id))
+```
+
+```{r}
+videos = read_csv(here::here('data/babyview/BabyView Session Tracking - Sheet1.csv'))  %>%
+  select(subject_id, video_id, Date,Time) %>%
+  left_join(to_join) %>%
+  mutate(age_during_video = difftime(mdy(Date), mdy(DoB), units='days')) %>%
+  mutate(age_during_video = as.numeric(age_during_video)/30.1)
+```
+
+```{r}
+filename = here::here('data/babyview/videos_with_age.csv')
+write_csv(videos, filename)
+```
+
+```{r}
+all_data_with_age <- all_data  %>%
+  distinct() %>%
+  left_join(videos %>% select(subject_id, video_id, age_during_video)) %>%
+  filter(!subject_id %in% c('00560001')) # korean family, invalid transcripts
+```
+
+```{r}
+by_sub_and_age <- all_data_with_age %>%
+  ungroup() %>%
+  mutate(scaled_avg_alignment = scale(average_alignment)) %>%
+  group_by(subject_id, age_during_video) %>%
+  multi_boot_standard(col='scaled_avg_alignment')
+
+  # summarize(alignment_across_videos = mean(max_alignment), alignment_across_videos_avg = mean(average_alignment),  utterance_number = max(utterance_no), )
+```
+```{r}
+ggplot(by_sub_and_age, aes(x=age_during_video, y=mean)) +
+  geom_point(alpha=.4, aes(col=subject_id)) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper, col=subject_id), alpha=.4) +
+  # geom_smooth(span=4, method='lm', color='grey') +
+  theme_few() +
+  ylab('Alignment') +
+  theme(legend.position='none') +
+  xlab('Age of subject') +
+  theme(aspect.ratio=1)
+  # facet_wrap(~subject_id)
+```
+
+
+
+```{r}
+ggplot(all_data_with_age %>% filter(!is.na(age_during_video)), aes(x=age_during_video, y=average_alignment)) +
+  # geom_density(aes(y=average_alignment)) +
+  geom_point(alpha=.01, aes(col=subject_id)) +
+  # geom_boxplot(alpha=.01, aes(group=age_during_video, col=subject_id)) +
+  geom_smooth(span=10, method='lm', color='grey') +
+  theme_few() +
+  ylab('CLIP Alignment') +
+  xlab('Age of subject')  +
+  theme(aspect.ratio=.75) +
+  theme(legend.position='none')
+```
+
+
+```{r}
+ggplot(by_sub_and_age, aes(x=age_during_video, y=alignment_across_videos, size=utterance_number)) +
+  geom_point(alpha=.4, aes(col=subject_id)) +
+  # geom_line(aes(group=subject_id)) +
+  geom_smooth(span=4, method='lm', color='grey') +
+  theme_few() +
+  # ylim(.21, .24) +
+  ylab('Alignment') +
+  theme(legend.position='none') +
+  xlab('Age of subject') +
+  theme(aspect.ratio=1)
+  # facet_wrap(~subject_id)
+```
+
+
+
+```{r}
+summary(lmer(data=all_data_with_age, max_alignment ~ age_during_video + (1|subject_id) + (1|utterance_length)))
+```
+
+```{r}
+summary(lmer(data=by_sub_and_age, alignment_across_videos ~ age_during_video + (1|subject_id)))
+```
+```{r}
+summary(lmer(data=all_data_with_age, referent_present ~ age_during_video + (1|subject_id) + (1|utterance_length)))
+```
+
+
+
+```{r}
+all_data_with_age <- all_data_with_age %>%
+  mutate(referent_present = max_alignment>.25)
+```
+```{r}
+by_sub_ref_present <-  all_data_with_age %>%
+  group_by(age_during_video, subject_id) %>%
+  summarize(prop_ref_present = mean(referent_present), num_utterances = length(utterance_no))
+```
+
+
+```{r}
+ggplot(all_data_with_age, aes(x=age_during_video, y=prop_ref_present, size = num_utterances)) +
+  geom_point(alpha=.4, aes(col=subject_id)) +
+  # geom_line(aes(group=subject_id)) +
+  geom_smooth(span=4, method='lm', color='grey') +
+  theme_few() +
+  # ylim(.21, .24) +
+  ylab('Prop ref present') +
+  theme(legend.position='none') +
+  xlab('Age of subject') +
+  theme(aspect.ratio=1)
+  # facet_wrap(~subject_id)
+```
+
+```{r}
+ggplot(by_sub_ref_present, aes(x=age_during_video, y=prop_ref_present, size = num_utterances)) +
+  geom_point(alpha=.4, aes(col=subject_id)) +
+  # geom_line(aes(group=subject_id)) +
+  geom_smooth(span=4, method='lm', color='grey') +
+  theme_few() +
+  # ylim(.21, .24) +
+  ylab('Prop ref present') +
+  theme(legend.position='none') +
+  xlab('Age of subject') +
+  theme(aspect.ratio=1)
+  # facet_wrap(~subject_id)
+```
+
+```{r}
+examples = all_data %>%
+  distinct() %>%
+  # group_by(subject_id) %>%
+  arrange(-average_alignment) %>%
+  slice_head(n=10)
+```
+
+
+```{r}
+examples_low = all_data %>%
+  distinct() %>%
+  # group_by(subject_id) %>%
+  arrange(average_alignment) %>%
+  slice_head(n=10)
+```

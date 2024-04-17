@@ -1,0 +1,131 @@
+---
+title: "clip_alignment_ccn"
+author: "Bria Long"
+date: "2024-04-10"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(ggthemes)
+```
+# Preprocess age data
+```{r}
+families = read_csv(here::here('data/babyview/Families-Enrolled - Families-Enrolled.csv'))
+
+```
+
+
+```{r}
+families_cleaned <- families %>%
+  rename(status = `Enrollment Status (from Enrolled Families)`) %>%
+  rename(date = `Enrollment Date (from Enrolled Families)`) %>%
+  mutate(entry_age = difftime(ymd(today()), mdy(DoB), units='days')) %>%
+  filter(status == 'Enrolled') %>%
+  mutate(days_enrolled = difftime(ymd(today()), mdy(date), units='days')) %>%
+  mutate(months_since = as.numeric(days_enrolled/30.41)) %>%
+  mutate(entry_age_months = as.numeric(entry_age/30.41)) %>%
+  mutate(subid = as.factor(`Subject ID`)) %>%
+  mutate(Income = parse_number(`Average Income`)) %>%
+  mutate(Siblings = as.numeric(`# of children in the household`)) %>%
+  select(subid, status, date,  entry_age_months, months_since, Race, Income, Siblings) %>%
+  mutate(start_age = entry_age_months) %>%
+  pivot_longer(cols=c('entry_age_months','months_since'), names_to='timepoint',values_to='time')
+```  
+
+```{r}
+to_join <- families %>%
+    mutate(subject_id = as.factor(`Subject ID`)) %>%
+    select(subject_id, DoB)  %>%
+    filter(!is.na(subject_id)) %>%
+  mutate(subject_id = paste0('00',subject_id))
+```
+
+```{r}
+videos = read_csv(here::here('data/babyview/BabyView Session Tracking - Sheet1.csv'))  %>%
+  select(subject_id, video_id, Date,Time) %>%
+  left_join(to_join) %>%
+  mutate(age_during_video = difftime(mdy(Date), mdy(DoB), units='days')) %>%
+  mutate(age_during_video = as.numeric(age_during_video)/30.1)
+```
+
+```{r}
+filename = here::here('data/babyview/videos_with_age.csv')
+write_csv(videos, filename)
+```
+
+
+```{r}
+# Define the base directory where your folders are located
+base_dir <- here::here('data/babyview/clip-alignment-csvs/')  # Replace with your actual path
+```
+
+# Preprocess clip scores
+```{r}
+# Function to read all CSV files and bind them into a tibble
+read_all_csvs <- function(dir_path) {
+  # Get all csv file paths recursively
+  csv_files <- dir(dir_path, recursive = TRUE, full.names = TRUE, pattern = "\\.csv$")
+  
+  # Read each csv file and store it in a list
+  data_list <- lapply(csv_files, function(file_path) {
+    # Extract folder name which contains the values
+    folder_name <- dirname(file_path)
+    subject_id <- strsplit(basename(folder_name), "_")[[1]][1]
+    video_id <- strsplit(basename(folder_name), "_")[[1]][2]
+    date <- strsplit(basename(folder_name), "_")[[1]][3]
+
+  
+    # Add the folder values as new columns to the tibble
+    this_sub <- read_csv(file_path) %>%
+      mutate(subject_id = subject_id,
+             video_id = video_id, 
+             date = date) %>%
+      group_by(subject_id, video_id, utterance_no, text) %>%
+      summarize(max_alignment = max(dot_product), average_alignment = mean(dot_product), utterance_length=length(unique(frame)))
+    
+    # write out intermediate csvs for later loading
+    filename = here::here('data/babyview/clip_processed',paste0(subject_id,'_', video_id, '_processed.csv'))
+    write_csv(this_sub, filename)
+    
+    return(this_sub)
+  })
+  
+  # Combine all the dataframes into a single tibble
+  bind_rows(data_list)
+}
+
+# Call the function and store the result
+all_data <- read_all_csvs(base_dir)
+
+# Print the combined tibble
+# print(all_data)
+
+```
+
+```{r}
+all_data_with_age <- all_data %>%
+  left_join(videos)
+```
+
+```{r}
+by_sub_and_age <- all_data %>%
+  group_by(subject_id, age_during_video) %>%
+  summarize(alignment_across_videos = mean(average_alignment), utterance_number = max(utterance_no))
+```
+
+```{r}
+ggplot(by_sub_and_age, aes(x=age_during_video, y=alignment_across_videos, col=subject_id, size=utterance_number)) +
+  geom_point(alpha=.8) +
+  geom_line(aes(group=subject_id)) +
+  theme_few() +
+  ylab('Alignment') +
+  xlab('Age of subject')
+```
