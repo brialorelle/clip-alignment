@@ -55,7 +55,8 @@ with open(csv_file, mode='r') as file:
 
 # Convert set back to list for ordering
 texts = list(texts)
-
+# remove empty strings
+texts = [text for text in texts if text]
 # Get all unique text embeddings at once
 print(f"Processing texts, clip_batch_size={clip_batch_size}...")
 text_embeddings = torch.tensor(client.encode(texts, batch_size=clip_batch_size, show_progress=True, prefetch=prefetch)).to(device)
@@ -81,6 +82,8 @@ for i in range(0, len(frame_paths), frame_batch_size):
     batch_image_embeddings /= torch.norm(batch_image_embeddings, dim=1, keepdim=True)
 
     for j, (utterance_no, text, frame_path) in enumerate(batch_frame_paths):
+        if not text:
+            continue
         text_embedding = text_to_embedding[text]
         image_embedding = batch_image_embeddings[j]
         dot_product = torch.dot(text_embedding, image_embedding).item()

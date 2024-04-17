@@ -40,7 +40,7 @@ def main():
         torch_dtype=torch_dtype,
         device=device,
     )
-    all_audio_files = glob(os.path.join(mp3_folder, "**", "*.mp3"), recursive=True)
+    all_audio_files = sorted(glob(os.path.join(mp3_folder, "**", "*.mp3"), recursive=True))
 
     group_size = len(all_audio_files) // num_parallel
     start_idx = rank_id * group_size
@@ -49,21 +49,27 @@ def main():
         end_idx = len(all_audio_files)
     current_group_audio_files = all_audio_files[start_idx:end_idx]
 
-    for audio_file in tqdm(current_group_audio_files):
+    for idx, audio_file in enumerate(tqdm(current_group_audio_files)):
         file_name = os.path.basename(audio_file)
         file_name = re.sub(r"\.mp3$", "", file_name)
         try:
             subject_id = re.findall(r'(.*)_GX', file_name)[0]
         except:
-            print(f"Error: Could not extract subject ID from {file_name}, skip")
-            continue
+            print(f"[WARNING]: Could not extract subject ID from {file_name}, skip")
+            raise RuntimeError
         result = pipe(audio_file, return_timestamps=True)
         # Convert timestamps to continuous time
         current_time = 0.0
         data = []
         for chunk in result['chunks']:
             start_time = current_time
-            end_time = start_time + (chunk['timestamp'][1] - chunk['timestamp'][0])
+            duration_start = chunk['timestamp'][0]
+            duration_end = chunk['timestamp'][1]
+            if type(duration_start) is not float:
+                duration_start = 0.0
+            if type(duration_end) is not float:
+                duration_end = 0.0
+            end_time = start_time + (duration_end - duration_start)
             data.append({
                 'start_time': round(start_time, 2),
                 'end_time': round(end_time, 2),

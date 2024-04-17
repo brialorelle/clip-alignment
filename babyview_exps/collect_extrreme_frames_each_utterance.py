@@ -14,8 +14,10 @@ all_subject_number_list = sorted(os.listdir(babyview_video_folder))
 exclude_subjects = ['Bria_Long', 'Erica_Yoon']
 all_subject_number_list = [subject for subject in all_subject_number_list if subject not in exclude_subjects]
 total_number_of_videos = sum([len(glob(os.path.join(babyview_video_folder, subject, "*.MP4"))) for subject in all_subject_number_list])
+topN = 250
 
-all_results = []  # This will store results from all subjects
+# all_results = []  # This will store results from all subjects
+utterances_max_dict = {}
 
 for subject in tqdm(all_subject_number_list, desc="Processing Subjects"):
     all_mp4_files = glob(os.path.join(babyview_video_folder, subject, "*.MP4"))
@@ -26,7 +28,7 @@ for subject in tqdm(all_subject_number_list, desc="Processing Subjects"):
         
         # Checking if the result file exists
         if not os.path.exists(output_csv_dir):
-            print(f"Missing data for {video_file_name}")
+            print(f"Missing data for {video_file_name}:{output_csv_dir}")
             continue
         
         single_video_df = pd.read_csv(output_csv_dir)
@@ -36,32 +38,40 @@ for subject in tqdm(all_subject_number_list, desc="Processing Subjects"):
         # Collecting data
         for _, group in single_video_df.groupby('utterance_no'):
             max_entry = group.loc[group['dot_product'].idxmax()]
-            min_entry = group.loc[group['dot_product'].idxmin()]
-            
-            all_results.append({
-                "utterance_no": max_entry['utterance_no'],
-                "text": max_entry['text'],
-                "max_frame": max_entry['frame'],
-                "max_dot_product": max_entry['dot_product'],
-                "min_frame": min_entry['frame'],
-                "min_dot_product": min_entry['dot_product']
-            })
+            if max_entry['text'] not in utterances_max_dict:
+                utterances_max_dict[max_entry['text']] = {
+                    'max_dot_product': max_entry['dot_product'],
+                    'max_frame': max_entry['frame'],
+                    'utterance_no': max_entry['utterance_no'],
+                    'text': max_entry['text']
+                }
+            else:
+                if max_entry['dot_product'] > utterances_max_dict[max_entry['text']]['max_dot_product']:
+                    utterances_max_dict[max_entry['text']] = {
+                        'max_dot_product': max_entry['dot_product'],
+                        'max_frame': max_entry['frame'],
+                        'utterance_no': max_entry['utterance_no'],
+                        'text': max_entry['text']
+                    }
+
 
 # Creating DataFrame from results
-all_results_df = pd.DataFrame(all_results)
+# all_results_df = pd.DataFrame(all_results)
 
 # Sorting by 'max_dot_product' to find the top 200 utterances
-top_utterances_df = all_results_df.sort_values(by='max_dot_product', ascending=False).head(200)
+# top_utterances_df = all_results_df.sort_values(by='max_dot_product', ascending=False).head(200)
+max_utterances_df = pd.DataFrame(utterances_max_dict).T.reset_index()
+topN_max_utterances_df = max_utterances_df.sort_values(by='max_dot_product', ascending=False).head(topN)
 
 # %%
 # Save these top utterances into a CSV
 # save_frame_dir = os.path.join(output_root_dir, "all_clip_results", "chosen_frames_new")
 save_frame_dir = os.path.join(output_root_dir, "all_clip_results_large_v3", "chosen_frames_large_v3")
 os.makedirs(save_frame_dir, exist_ok=True)
-top_utterances_df.to_csv(os.path.join(save_frame_dir, "top_utterances.csv"), index=False)
+topN_max_utterances_df.to_csv(os.path.join(save_frame_dir, "topN_utterances.csv"), index=False)
 
 # Plotting and saving the frames for these top utterances
-for index, row in tqdm(top_utterances_df.iterrows(), total=top_utterances_df.shape[0], desc="Adding Titles and Saving Frames"):
+for index, row in tqdm(topN_max_utterances_df.iterrows(), total=topN_max_utterances_df.shape[0], desc="Adding Titles and Saving Frames"):
     # for frame_type in ['max_frame', 'min_frame']:
     for frame_type in ['max_frame']:
         frame_path = row[frame_type]
@@ -75,3 +85,4 @@ for index, row in tqdm(top_utterances_df.iterrows(), total=top_utterances_df.sha
         plt.axis('off')
         plt.savefig(dest_path, bbox_inches='tight', pad_inches=0)
         plt.close()
+
