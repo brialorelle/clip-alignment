@@ -12,12 +12,16 @@ def main():
     parser.add_argument("--mp3_folder", type=str, required=True, help="Folder to save extracted MP3 files.")
     parser.add_argument("--transcript_output_folder", type=str, required=True, help="Folder to save extracted transcripts.")
     parser.add_argument("--device", type=str, default="cuda", help="Device to run the model on.")
+    parser.add_argument("--rank_id", type=int, default=0, help="Rank ID for distributed running.")
+    parser.add_argument("--num_parallel", type=int, default=1, help="Number of parallel processes.")
     args = parser.parse_args()
     mp3_folder = args.mp3_folder
     transcript_output_folder = args.transcript_output_folder
     device = args.device
     torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
     model_id = "distil-whisper/distil-large-v3"
+    rank_id = args.rank_id
+    num_parallel = args.num_parallel
     model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id, 
                                                     torch_dtype=torch_dtype, 
                                                     low_cpu_mem_usage=True, 
@@ -38,7 +42,14 @@ def main():
     )
     all_audio_files = glob(os.path.join(mp3_folder, "**", "*.mp3"), recursive=True)
 
-    for audio_file in tqdm(all_audio_files):
+    group_size = len(all_audio_files) // num_parallel
+    start_idx = rank_id * group_size
+    end_idx = start_idx + group_size
+    if rank_id == num_parallel - 1:
+        end_idx = len(all_audio_files)
+    current_group_audio_files = all_audio_files[start_idx:end_idx]
+
+    for audio_file in tqdm(current_group_audio_files):
         file_name = os.path.basename(audio_file)
         file_name = re.sub(r"\.mp3$", "", file_name)
         try:
