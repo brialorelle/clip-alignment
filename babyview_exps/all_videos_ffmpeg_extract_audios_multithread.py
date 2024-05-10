@@ -12,6 +12,7 @@ def extract_audio(video_path, mp3_path):
     cmd = [
         'ffmpeg',
         '-i', video_path,    # Input video path
+        '-y',                # Overwrite
         '-vn',               # Disable video processing
         '-ar', '44100',      # Set audio sampling rate to 44100 Hz
         '-ac', '2',          # Set number of audio channels to 2
@@ -33,6 +34,7 @@ def main():
 
     os.makedirs(mp3_folder, exist_ok=True)
     video_files = glob(os.path.join(video_folder, "**", "*.MP4"), recursive=True)
+    video_files += glob(os.path.join(video_folder, "**", "*.mp4"), recursive=True)
     print(video_files)
 
     tasks = []

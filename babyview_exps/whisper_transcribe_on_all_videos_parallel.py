@@ -7,6 +7,8 @@ import re
 import argparse
 from concurrent.futures import ProcessPoolExecutor
 from tqdm import tqdm
+import logging
+logging.getLogger().setLevel(logging.ERROR)
 
 def main():
     parser = argparse.ArgumentParser(description="Process audio files using Whisper.")
@@ -14,6 +16,7 @@ def main():
     parser.add_argument("--transcript_output_folder", type=str, required=True, help="Folder to save transcripts.")
     parser.add_argument("--device_ids", type=str, default="[0,1,2,3]", help="List of GPU device IDs to use.")
     parser.add_argument("--num_parallel", type=int, default=4, help="Number of parallel processes.")
+    parser.add_argument("--is_saycam", type=int, default=0, help="Whether the videos are from SayCam.")
     args = parser.parse_args()
 
     mp3_folder = args.mp3_folder
@@ -21,6 +24,7 @@ def main():
     device_ids = [int(id) for id in args.device_ids.strip("[]").split(",")]
     num_devices = len(device_ids)
     num_parallel = args.num_parallel
+    is_saycam = args.is_saycam
 
     all_audio_files = glob(os.path.join(mp3_folder, "**", "*.mp3"), recursive=True)
 
@@ -46,7 +50,7 @@ def main():
             f"conda activate torch_2_2_2;"
             f"python3 whisper_transcribe_on_all_videos.py --mp3_folder {mp3_folder} "
             f"--transcript_output_folder {transcript_output_folder} --device cuda:{device_id} "
-            f"--rank_id {rank_id} --num_parallel {num_parallel}"
+            f"--rank_id {rank_id} --num_parallel {num_parallel} --is_saycam {is_saycam}"
         )
         os.system(f"tmux send-keys -t {session_name}.{rank_id} '{command}' Enter")
     print(f"Started {num_parallel} parallel processes in tmux session {session_name}")
