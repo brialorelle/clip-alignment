@@ -72,12 +72,16 @@ for utterance_no, text in utterances_info:
     os.makedirs(output_dir, exist_ok=True)
     frame_paths.extend([(utterance_no, text, os.path.join(output_dir, f)) for f in os.listdir(output_dir) if f.endswith(".jpg")])
 
+if(len(frame_paths) == 0):
+    raise ValueError(f"No frames found for the video:{frame_paths}")
 print(f"Processing frames in batches, frame_batch_size={frame_batch_size}, clip_batch_size={clip_batch_size}...")
 # Process frame paths in batches and calculate dot products
 results = []
 for i in range(0, len(frame_paths), frame_batch_size):
     batch_frame_paths = frame_paths[i:i+frame_batch_size]
     paths = [path for _, _, path in batch_frame_paths]
+    if not os.path.exists(paths[0]):
+        raise ValueError(f"Frame path not found : {paths[0]}")
     batch_image_embeddings = torch.tensor(client.encode(paths, batch_size=clip_batch_size, show_progress=True, prefetch=prefetch)).to(device)
     batch_image_embeddings /= torch.norm(batch_image_embeddings, dim=1, keepdim=True)
 
@@ -102,6 +106,7 @@ for i in range(0, len(frame_paths), frame_batch_size):
 
 # Save results
 output_dir = os.path.join(save_root_dir, "all_result_csv_files", video_file_name)
+print(output_dir)
 os.makedirs(output_dir, exist_ok=True)
 
 with open(os.path.join(output_dir, 'clip_final_results.csv'), mode='w', newline='') as result_file:

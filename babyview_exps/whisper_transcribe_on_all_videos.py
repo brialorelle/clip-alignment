@@ -41,6 +41,8 @@ def main():
         tokenizer=processor.tokenizer,
         feature_extractor=processor.feature_extractor,
         max_new_tokens=128,
+        chunk_length_s=25,
+        batch_size=16,
         torch_dtype=torch_dtype,
         device=device,
     )
@@ -69,24 +71,18 @@ def main():
             print(f"[WARNING]: Could not extract subject ID from {file_name}, skip")
             raise RuntimeError
         result = pipe(audio_file, return_timestamps=True)
-        # Convert timestamps to continuous time
-        current_time = 0.0
+        # current_time = 0.0
         data = []
         for chunk in result['chunks']:
-            start_time = current_time
-            duration_start = chunk['timestamp'][0]
-            duration_end = chunk['timestamp'][1]
-            if type(duration_start) is not float:
-                duration_start = 0.0
-            if type(duration_end) is not float:
-                duration_end = 0.0
-            end_time = start_time + (duration_end - duration_start)
+            start_time = chunk['timestamp'][0]
+            end_time = chunk['timestamp'][1]
+            # end_time = start_time + (duration_end - duration_start)
             data.append({
-                'start_time': round(start_time, 2),
-                'end_time': round(end_time, 2),
+                'start_time': start_time,
+                'end_time': end_time,
                 'text': chunk['text']
             })
-            current_time = end_time  # Update current time
+            # current_time = end_time  # Update current time
         # Save result to csv
         res_df = pd.DataFrame(data)
         output_path = os.path.join(transcript_output_folder, subject_id, f"{file_name}.csv")

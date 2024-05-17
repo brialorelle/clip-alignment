@@ -43,7 +43,7 @@ def main():
     print(f"The total number of videos found in the main folder: {total_number_of_videos}")
     tasks = []
     for subjcet in tqdm(all_subject_number_list):
-        all_mp4_files = glob(os.path.join(babyview_video_folder, subjcet, "*.MP4"))
+        all_mp4_files = sorted(glob(os.path.join(babyview_video_folder, subjcet, "*.MP4")))
         for mp4_full_path in tqdm(all_mp4_files):
             mp4_filename = os.path.basename(mp4_full_path)
             transcript_filename = re.sub(r"\.MP4$", ".csv", mp4_filename)

@@ -29,7 +29,11 @@ print(f"The total number of videos found in the main folder: {total_number_of_vi
 
 def process_video(mp4_full_path, subject):
     mp4_filename = os.path.basename(mp4_full_path)
-    transcript_filename = re.sub(r"\.MP4$", ".csv", mp4_filename)
+    if re.search(r"\.MP4$", mp4_filename):
+        partten = r"\.MP4$"
+    else:
+        partten = r"\.mp4$"
+    transcript_filename = re.sub(partten, ".csv", mp4_filename)
     transcript_full_path = os.path.join(babyview_transcript_folder, subject, transcript_filename)
     output_full_path = os.path.join(output_root_dir, subject)
     os.makedirs(output_full_path, exist_ok=True)
