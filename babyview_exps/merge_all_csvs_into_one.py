@@ -43,4 +43,3 @@ for subject in tqdm(all_subject_number_list, desc="Processing Subjects"):
         
 # %%
 merged_subjects_df.to_csv(os.path.join(output_root_dir, "all_clip_results_large_v3", "merged_all_results.csv"), index=False)
-# %%
