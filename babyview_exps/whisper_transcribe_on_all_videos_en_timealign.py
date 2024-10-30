@@ -12,6 +12,7 @@ logging.getLogger().setLevel(logging.ERROR)
 def main():
     parser = argparse.ArgumentParser(description="Extract MP3 audio from video files using ffmpeg.")
     parser.add_argument("--mp3_folder", type=str, required=True, help="Folder to save extracted MP3 files.")
+    parser.add_argument("--english_subjects_file", type=str, required=False, default="", help="File to save extracted transcripts.")
     parser.add_argument("--transcript_output_folder", type=str, required=True, help="Folder to save extracted transcripts.")
     parser.add_argument("--rank_id", type=int, default=0, help="Rank ID for distributed running.")
     parser.add_argument("--num_parallel", type=int, default=1, help="Number of parallel processes.")
@@ -26,9 +27,16 @@ def main():
     model = stable_whisper.load_model('large-v3', device=device)
 
     english_subjects = []
-    with open('english_subjects.txt', 'r') as f:
-        for line in f:
-            english_subjects.append(line.strip())
+    filter_english_subjects = False
+    english_subjects_file = args.english_subjects_file
+    if os.path.exists(english_subjects_file):
+        filter_english_subjects = True
+        with open(english_subjects_file, 'r') as f:
+            for line in f:
+                english_subjects.append(line.strip())
+    else:
+        filter_english_subjects = False
+       
     all_audio_files = sorted(glob(os.path.join(mp3_folder, "**", "*.mp3"), recursive=True))
     en_audio_files = []
     file_name_subject_id = {}
@@ -47,21 +55,24 @@ def main():
             print(f"[WARNING]: Could not extract subject ID from {file_name}, skip")
             raise RuntimeError
         file_name_subject_id[file_name] = subject_id
-        if subject_id in english_subjects:
+        if subject_id in english_subjects and filter_english_subjects:
             en_audio_files.append(audio_file)
+    
+    if filter_english_subjects:
+        all_audio_files = en_audio_files
 
-    group_size = len(en_audio_files) // num_parallel
+    group_size = len(all_audio_files) // num_parallel
     start_idx = rank_id * group_size
     end_idx = start_idx + group_size
     if rank_id == num_parallel - 1:
-        end_idx = len(en_audio_files)
-    current_group_audio_files = en_audio_files[start_idx:end_idx]
+        end_idx = len(all_audio_files)
+    current_group_audio_files = all_audio_files[start_idx:end_idx]
 
     for idx, audio_file in enumerate(tqdm(current_group_audio_files)):
         file_name = os.path.basename(audio_file)
         file_name = re.sub(r"\.mp3$", "", file_name)
         subject_id = file_name_subject_id[file_name]
-        result = model.transcribe(audio_file, language='en')
+        result = model.transcribe(audio_file, language='en', suppress_silence=True)
         result_dict = result.to_dict()
         data = []
         for chunk in result_dict['segments']:

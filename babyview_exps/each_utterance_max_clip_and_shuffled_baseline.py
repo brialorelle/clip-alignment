@@ -91,9 +91,8 @@ for index, row in tqdm(max_utterances_df.iterrows(), total=max_utterances_df.sha
     random_chosen_row = max_utterances_df[max_utterances_df["utterance_no"] != row["utterance_no"]].sample(1)
     random_chosen_frame_embedding = random_chosen_row["frame_embedding"]
     random_chosen_frame_embedding = np.load(random_chosen_frame_embedding.values[0])
-    random_chosen_text_embedding = random_chosen_row["text_embeeding"]
-    random_chosen_text_embedding = np.load(random_chosen_text_embedding.values[0])
-    random_chosen_dot_product = np.dot(random_chosen_text_embedding, random_chosen_frame_embedding)
+    text_embedding = np.load(row["text_embeeding"])
+    random_chosen_dot_product = np.dot(text_embedding, random_chosen_frame_embedding)
     max_and_shuffled_baseline_dict["random_shuffled_frame"].append(random_chosen_row["max_frame"].values[0])
     max_and_shuffled_baseline_dict["random_shuffled_dot_product"].append(random_chosen_dot_product)
 max_and_shuffled_baseline_df = pd.DataFrame(max_and_shuffled_baseline_dict)
