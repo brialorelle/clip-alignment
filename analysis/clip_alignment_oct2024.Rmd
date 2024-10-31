@@ -1,0 +1,102 @@
+---
+title: "clip_alignment_analyses"
+author: "Bria Long"
+date: "2024-04-10"
+output: html_document
+---
+
+
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+
+# Load preprocessed data
+```{r}
+families = read_csv(here::here('data/babyview/subids_deidentified.csv')) %>%
+    mutate(subject_id = as.factor(subject_id)) %>%
+    select(subject_id, birthdate_short)  %>%
+    filter(!is.na(subject_id))
+```
+
+```{r}
+d = read_csv(here::here('data/babyview/adult_english_only/max_and_shuffled_baseline.csv')) %>%
+  mutate(date_cleaned = str_split_fixed(date,'-',2)[,1]) %>%
+  mutate(date_cleaned_mdy = lubridate::mdy(date_cleaned)) %>%
+  filter(!is.na(date_cleaned_mdy)) %>%
+  left_join(families) %>%
+  mutate(age_when_recording = difftime(date_cleaned_mdy, birthdate_short)) %>%
+  mutate(months_old = as.numeric(age_when_recording)/30.44) %>%
+  mutate(months_rounded = floor(months_old)) 
+
+```
+
+
+```{r}
+by_sub <- d %>%
+  mutate(diff = max_dot_product - random_shuffled_dot_product) %>%
+  group_by(subject_id) %>%
+  multi_boot_standard(col = 'diff') 
+```
+
+
+
+```{r}
+by_sub_alignment <- d %>%
+  mutate(high_alignment = max_dot_product>.25) %>%
+  group_by(subject_id) %>%
+  summarize(prop_high_alignment = mean(high_alignment))
+```
+
+```{r}
+by_sub_higher_diff <- d %>%
+  mutate(diff = max_dot_product - random_shuffled_dot_product) %>%
+  mutate(high_alignment_diff = diff>.01) %>%
+  group_by(subject_id) %>%
+  summarize(prop_high_alignment = mean(high_alignment_diff))
+```
+
+
+```{r}
+by_video <- d %>%
+  group_by(utterance_no) %>%
+  multi_boot_standard(col='max_dot_product')
+```
+
+
+
+```{r}
+ggplot(d, aes(x=months_old, y=max_dot_product)) +
+  geom_point(alpha=.2, aes(col=subject_id)) +
+  theme_few() +
+  ylab('Alignment') +
+  theme(legend.position='none') +
+  xlab('Age of subject') +
+  theme(aspect.ratio=1)
+```
+
+
+
+```{r}
+ggplot(all_data_with_age %>% filter(!is.na(age_during_video)), aes(x=age_during_video, y=average_alignment)) +
+  geom_point(alpha=.01, aes(col=subject_id)) +
+  geom_smooth(span=10, method='lm', color='grey') +
+  theme_few() +
+  ylab('CLIP Alignment') +
+  xlab('Age of subject')  +
+  theme(aspect.ratio=.75) +
+  theme(legend.position='none')
+```
+
+
+
+
+
+```{r}
+library(lme4)
+summary(lmer(data=d, max_dot_product ~ age_when_recording + (1|subject_id)))
+```
+
+```{r}
